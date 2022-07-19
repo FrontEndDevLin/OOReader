@@ -7,9 +7,9 @@
 			}
 		},
 		{
-			"path": "pages/setting/setting",
+			"path": "pages/mine/mine",
 			"style": {
-				"navigationBarTitleText": "设置"
+				"navigationBarTitleText": "我的"
 			}
 		}
 	],
@@ -19,17 +19,30 @@
 		"borderStyle": "black",
 		"backgroundColor": "#ffffff",
 		"height": "50px",
-		"fontSize": "10px",
+		"fontSize": "14px",
 		"iconWidth": "24px",
 		"spacing": "3px",
+		"iconfontSrc": "static/tabbar/iconfont.ttf",
 		"list": [
 			{
 				"pagePath": "pages/book-list/book-list",
-				"text": "书架"
+				"text": "书架",
+				"iconfont": {
+					"color": "#7A7E83",
+					"fontSize": "18px",
+					"selectedColor": "#3cc51f",
+					"text": "\ue602"
+				}
 			},
 			{
-				"pagePath": "pages/setting/setting",
-				"text": "设置"
+				"pagePath": "pages/mine/mine",
+				"text": "我的",
+				"iconfont": {
+					"color": "#7A7E83",
+					"fontSize": "18px",
+					"selectedColor": "#3cc51f",
+					"text": "\ue632"
+				}
 			}
 		]
 	},

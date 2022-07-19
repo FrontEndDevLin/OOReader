@@ -7,9 +7,99 @@
 			<view class="btn-list">
 				<button type="default">导入书籍</button>
 			</view>
-			<view class="book-list">
-				<view class="book-item">
+			<view class="bookshelf">
+				<view class="book-list">
+					<view class="book-item">
+						<view class="book-content">
+							<view class="book-name">
+								太平要术
+							</view>
+						</view>
+						<view class="book-shadow"></view>
+						<view class="book-line">
+							<view class="line line1"></view>
+							<view class="line line2"></view>
+							<view class="line line3"></view>
+							<view class="line line4"></view>
+						</view>
+					</view>
 					
+					<view class="book-item">
+						<view class="book-content">
+							<view class="book-name">
+								太平要术
+							</view>
+						</view>
+						<view class="book-shadow"></view>
+						<view class="book-line">
+							<view class="line line1"></view>
+							<view class="line line2"></view>
+							<view class="line line3"></view>
+							<view class="line line4"></view>
+						</view>
+					</view>
+					
+					<view class="book-item">
+						<view class="book-content">
+							<view class="book-name">
+								太平要术
+							</view>
+						</view>
+						<view class="book-shadow"></view>
+						<view class="book-line">
+							<view class="line line1"></view>
+							<view class="line line2"></view>
+							<view class="line line3"></view>
+							<view class="line line4"></view>
+						</view>
+					</view>
+				</view>
+				
+				<view class="book-list">
+					<view class="book-item">
+						<view class="book-content">
+							<view class="book-name">
+								三国演义
+							</view>
+						</view>
+						<view class="book-shadow"></view>
+						<view class="book-line">
+							<view class="line line1"></view>
+							<view class="line line2"></view>
+							<view class="line line3"></view>
+							<view class="line line4"></view>
+						</view>
+					</view>
+					
+					<view class="book-item">
+						<view class="book-content">
+							<view class="book-name">
+								水浒传
+							</view>
+						</view>
+						<view class="book-shadow"></view>
+						<view class="book-line">
+							<view class="line line1"></view>
+							<view class="line line2"></view>
+							<view class="line line3"></view>
+							<view class="line line4"></view>
+						</view>
+					</view>
+					
+					<view class="book-item">
+						<view class="book-content">
+							<view class="book-name">
+								西游记
+							</view>
+						</view>
+						<view class="book-shadow"></view>
+						<view class="book-line">
+							<view class="line line1"></view>
+							<view class="line line2"></view>
+							<view class="line line3"></view>
+							<view class="line line4"></view>
+						</view>
+					</view>
 				</view>
 			</view>
 		</view>
@@ -35,6 +125,105 @@
 	}
 </script>
 
-<style>
-
+<style lang="less">
+	.container {
+		padding: 0 40rpx;
+		.btn-list {
+			margin-bottom: 40rpx;
+		}
+		
+		.book-list {
+			padding-right: 10rpx;
+			padding-bottom: 20rpx;
+			border-bottom: 1px solid #d9d9d9;
+			margin-bottom: 20rpx;
+			
+			.book-item {
+				display: inline-block;
+				width: 200rpx;
+				height: 300rpx;
+				position: relative;
+				margin-right: 35rpx;
+				
+				&:last-child {
+					margin-right: 0;
+				}
+				
+				.book-content {
+					position: absolute;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+					border: 1px solid #d9d9d9;
+					background-color: #465D93;
+					border-radius: 10rpx;
+					z-index: 2;
+					
+					.book-name {
+						height: 240rpx;
+						position: absolute;
+						left: 30rpx;
+						top: 20rpx;
+						background-color: #fff;
+						padding: 10rpx 4rpx;
+						writing-mode: vertical-rl;
+						border-radius: 4rpx;
+						
+						white-space: nowrap;
+						overflow: hidden;
+						// /*文字超出用省略号*/
+						text-overflow: ellipsis;
+						// /*盒子模型*/
+						// display: -webkit-box;
+						// /*显示的文本行数,3行*/
+						// -webkit-line-clamp: 2;
+						// /*子元素的垂直排列方式*/
+						// box-orient: vertical; 
+					}
+				}
+				
+				.book-shadow {
+					position: absolute;
+					top: 10rpx;
+					left: 10rpx;
+					width: 100%;
+					height: 100%;
+					border: 1px solid #d9d9d9;
+					background-color: #fff;
+					border-radius: 10rpx;
+					z-index: 1;
+				}
+				
+				.book-line {
+					position: absolute;
+					width: 20rpx;
+					height: 100%;
+					top: 0;
+					right: 0;
+					border-left: 1px solid #d9d9d9;
+					z-index: 2;
+					
+					.line {
+						position: absolute;
+						height: 1px;
+						width: 100%;
+						background-color: #fff;
+					}
+					.line1 {
+						top: 12.5%;
+					}
+					.line2 {
+						top: 37.5%;
+					}
+					.line3 {
+						bottom: 37.5%;
+					}
+					.line4 {
+						bottom: 12.5%;
+					}
+				}
+			}
+		}
+	}
 </style>

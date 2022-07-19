@@ -1,6 +1,6 @@
 <template>
 	<view>
-		
+		测试插件
 	</view>
 </template>
 
@@ -9,10 +9,14 @@
 		data() {
 			return {
 				
-			}
+			};
 		},
-		methods: {
-			
+		onLoad() {
+			let fonts = []
+			let obj = {}
+			fonts.forEach(v=>{
+				obj[v.name] = '\\u'+v.unicode
+			})
 		}
 	}
 </script>
