@@ -1,11 +1,11 @@
 <template>
-	<view>
+	<view class="page">
 		<view class="header">
 			<uni-search-bar @confirm="search" @input="input" cancelButton="none" placeholder="搜索已有书本"></uni-search-bar>
 		</view>
 		<view class="container">
 			<view class="btn-list">
-				<button type="default">导入书籍</button>
+				<button type="default" @click="importTxt">导入书籍</button>
 			</view>
 			<view class="bookshelf">
 				<view class="book-list">
@@ -23,95 +23,25 @@
 							<view class="line line4"></view>
 						</view>
 					</view>
-					
-					<view class="book-item">
-						<view class="book-content">
-							<view class="book-name">
-								太平要术
-							</view>
-						</view>
-						<view class="book-shadow"></view>
-						<view class="book-line">
-							<view class="line line1"></view>
-							<view class="line line2"></view>
-							<view class="line line3"></view>
-							<view class="line line4"></view>
-						</view>
-					</view>
-					
-					<view class="book-item">
-						<view class="book-content">
-							<view class="book-name">
-								太平要术
-							</view>
-						</view>
-						<view class="book-shadow"></view>
-						<view class="book-line">
-							<view class="line line1"></view>
-							<view class="line line2"></view>
-							<view class="line line3"></view>
-							<view class="line line4"></view>
-						</view>
-					</view>
-				</view>
-				
-				<view class="book-list">
-					<view class="book-item">
-						<view class="book-content">
-							<view class="book-name">
-								三国演义
-							</view>
-						</view>
-						<view class="book-shadow"></view>
-						<view class="book-line">
-							<view class="line line1"></view>
-							<view class="line line2"></view>
-							<view class="line line3"></view>
-							<view class="line line4"></view>
-						</view>
-					</view>
-					
-					<view class="book-item">
-						<view class="book-content">
-							<view class="book-name">
-								水浒传
-							</view>
-						</view>
-						<view class="book-shadow"></view>
-						<view class="book-line">
-							<view class="line line1"></view>
-							<view class="line line2"></view>
-							<view class="line line3"></view>
-							<view class="line line4"></view>
-						</view>
-					</view>
-					
-					<view class="book-item">
-						<view class="book-content">
-							<view class="book-name">
-								西游记
-							</view>
-						</view>
-						<view class="book-shadow"></view>
-						<view class="book-line">
-							<view class="line line1"></view>
-							<view class="line line2"></view>
-							<view class="line line3"></view>
-							<view class="line line4"></view>
-						</view>
-					</view>
 				</view>
 			</view>
 		</view>
+		
+		<fileManager ref="fileManager"/>
 	</view>
 </template>
 
 <script>
+	import fileManager from "../../components/file-manager/file-manager.vue";
+	
 	export default {
 		data() {
 			return {
 				
 			}
+		},
+		components: {
+			fileManager
 		},
 		methods: {
 			search() {
@@ -120,14 +50,26 @@
 			
 			input() {
 				
+			},
+			
+			importTxt() {
+				this.$refs.fileManager.open();
 			}
 		}
 	}
 </script>
 
 <style lang="less">
+	.page {
+		position: relative;
+		height: 100vh;
+	}
+	
 	.container {
 		padding: 0 40rpx;
+		position: absolute;
+		width: 100%;
+		
 		.btn-list {
 			margin-bottom: 40rpx;
 		}
@@ -143,7 +85,7 @@
 				width: 200rpx;
 				height: 300rpx;
 				position: relative;
-				margin-right: 35rpx;
+				margin-right: 30rpx;
 				
 				&:last-child {
 					margin-right: 0;
@@ -224,6 +166,11 @@
 					}
 				}
 			}
+		}
+	
+		
+		.container2 {
+			left: 100%;
 		}
 	}
 </style>
