@@ -5,11 +5,11 @@
 		</view>
 		<view class="container">
 			<view class="btn-list">
-				<button type="default" @click="importTxt">导入书籍</button>
+				<button type="default" @click="openImportWin">导入书籍</button>
 			</view>
 			<view class="bookshelf">
 				<view class="book-list">
-					<view class="book-item">
+					<view class="book-item" @click="toReader">
 						<view class="book-content">
 							<view class="book-name">
 								太平要术
@@ -27,7 +27,7 @@
 			</view>
 		</view>
 		
-		<fileManager ref="fileManager"/>
+		<fileManager ref="fileManager" @onCheckFile="importFile"/>
 	</view>
 </template>
 
@@ -37,11 +37,18 @@
 	export default {
 		data() {
 			return {
-				
+				path: ""
 			}
 		},
 		components: {
 			fileManager
+		},
+		onBackPress(e) {
+			// console.log(e)
+			if (this.$refs.fileManager.show) {
+				this.$refs.fileManager.close();
+				return true;
+			}
 		},
 		methods: {
 			search() {
@@ -52,8 +59,19 @@
 				
 			},
 			
-			importTxt() {
+			openImportWin() {
 				this.$refs.fileManager.open();
+			},
+			
+			importFile(file) {
+				// console.log(file)
+				this.path = file.fullPath;
+			},
+			
+			toReader() {
+				uni.navigateTo({
+					url: "../reader/reader?path=" + this.path
+				})
 			}
 		}
 	}

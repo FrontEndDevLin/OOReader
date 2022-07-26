@@ -15,11 +15,10 @@
 				</view>
 				{{ item.name }}
 			</view>
-			<view class="item" v-for="item of fileList" :key="item.index">
+			<view class="item" v-for="item of fileList" :key="item.index" @click="checkFile(item)">
 				<view class="icon">
 					<text class="iconfont icon-file"></text>
 				</view>
-				
 				{{ item.name }}
 			</view>
 		</view>
@@ -59,13 +58,21 @@
 					this.showAnimate = true;
 				}, 30)
 			},
+			close() {
+				this.showAnimate = false;
+				setTimeout(() => {
+					this.show = false;
+				}, 300)
+			},
 			
 			openFolder(item) {
 				// console.log(item.fullPath)
 				this.loadFileManage(item.fullPath);
-				// for (let k in item) {
-				// 	console.log(k)
-				// }
+			},
+			
+			checkFile(item) {
+				this.$emit("onCheckFile", item);
+				this.close();
 			},
 			
 			loadFileManage(path) {
@@ -115,6 +122,11 @@
 							for (let item of entries) {
 								if (/^\./.test(item.name)) {
 									continue;
+								}
+								if (item.isFile) {
+									if (!(/\.txt$/.test(item.name))) {
+										continue;
+									}
 								}
 								item.index = index++;
 								if (item.isFile) {

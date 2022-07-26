@@ -11,8 +11,16 @@
 			"style": {
 				"navigationBarTitleText": "我的"
 			}
+		},
+		{
+			"path": "pages/reader/reader",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
 		}
-	],
+  ],
 	"tabBar": {
 		"color": "#7A7E83",
 		"selectedColor": "#3cc51f",
