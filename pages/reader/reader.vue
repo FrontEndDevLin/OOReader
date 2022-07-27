@@ -1,41 +1,23 @@
 <template>
-	<view class="reader" id="reader">
-		<!-- 
-			总百分比，章节名称，当前页/章节总页，
-			导入文件的处理:
-			epubjs
-		 -->
+	<view class="reader" id="reader" v-if="path">
+		<web-view :src="path"></web-view>
 	</view>
 </template>
 
 <script>
-	import Epub from "epubjs";
-	
 	export default {
 		data() {
 			return {
-				path: "",
-				book: null,
-				rendition: null
+				path: ""
 			}
 		},
 		onLoad(option) {
-			this.path = option.path;
-			// console.log(this.path)
-			this.book = new Epub({ restore: true }); 
-			this.book.open(this.path);
-			
-			this.rendition = this.book.renderTo('reader', {
-				//滚动翻页
-				// flow: "paginated",
-				flow: 'scrolled-doc',
-				method: 'default',
-				restore: false
-			});
-			this.rendition.display();
+			// console.log(option.path);
+			this.path = "/hybrid/html/reader.html?bookpath=" + "/storage/emulated/0/Download/全职艺术家.txt";
+			// this.path = "http://192.168.88.145:4449/html/reader.html?bookpath=" + "/storage/emulated/0/Download/程序员健康指南.epub";
 		},
 		created() {
-			// console.log()
+			// console.log() 
 		},
 		methods: {
 			
@@ -47,5 +29,6 @@
 	.reader {
 		width: 100%;
 		height: 100vh;
+		background-color: #fff;
 	}
 </style>
