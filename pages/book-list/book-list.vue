@@ -33,6 +33,7 @@
 
 <script>
 	import fileManager from "../../components/file-manager/file-manager.vue";
+	import FileImporter from "../../utils/fileImporter.js";
 	
 	export default {
 		data() {
@@ -64,8 +65,8 @@
 			},
 			
 			importFile(file) {
-				// console.log(file)
-				this.path = file.fullPath;
+				let fileImporter = new FileImporter();
+				fileImporter.importFile(file);
 			},
 			
 			toReader() {
