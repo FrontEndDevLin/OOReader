@@ -9,7 +9,18 @@ let FileWriter = plus.android.importClass("java.io.FileWriter");
 let BufferedReader = plus.android.importClass("java.io.BufferedReader");
 // #endif
 
-let titleReg = /(正文){0,1}(第)([零〇一二三四五六七八九十百千万a-zA-Z0-9]{1,7})[章节卷集部篇回]((?! {4}).)((?!\t{1,4}).){0,30}/g;
+/**
+ * storage配置格式
+ * - bookname
+ * -- allImport boolean
+ * -- sessionList array
+ * --- sessionName string
+ * --- file session_1
+ * 
+ * 启动应用时，检查有没有全部导入，如果没有
+ */
+
+let titleReg = /^(正文){0,1}(第)([零〇一二三四五六七八九十百千万a-zA-Z0-9]{1,7})[章节卷集部篇回]((?! {4}).)((?!\t{1,4}).){0,30}/g;
 
 class FileImporter {
 	constructor() {
@@ -17,6 +28,7 @@ class FileImporter {
 		
 		this.importing = false;
 		
+		this.storageManager = new StorageManager();
 	}
 	
 	importFile(file) {
@@ -26,6 +38,13 @@ class FileImporter {
 		let path = file.fullPath;
 		let name = file.name;
 		
+		this.storageManager.init(name);
+		// return;
+		
+		if (this.storageManager.storage.allImport) {
+			// 已有导入
+			return;
+		}
 		if (this.statusChange) {
 			this.statusChange("importing");
 		}
@@ -34,11 +53,6 @@ class FileImporter {
 		let directory = new File(txtCachePath);
 		if (!directory.exists()) {
 			directory.mkdirs();
-			let configFile = new File(txtCachePath + "/book.json");
-			if (!configFile.exists()) {
-				configFile.createNewFile(); //创建文件
-				// let fos = new FileWriter(sdRoot + pathUrl, true);
-			}
 		}
 		
 		let txtFile = new File(path);
@@ -49,35 +63,119 @@ class FileImporter {
 			let cacheCnt = 0;
 			while ((txt = reader.readLine()) != null) {
 				if (titleReg.test(txt)) {
-					let txt2 = reader.readLine();
-					// 下一行是空的
-					if (!txt2) {
+					let fName = "session_" + cacheCnt;
+					
+					if (this.storageManager.exists(txt, fName)) {
+						console.log(`存在: ${txt}`);
+					} else {
 						let data = JSON.stringify(arr);
-						let fName = "session_" + cacheCnt;
+						
 						let f = new File(txtCachePath + "/" + fName);
 						if (!f.exists()) {
 							f.createNewFile(); //创建文件
 							let fReader = new FileWriter(txtCachePath + "/" + fName, true);
 							fReader.write(data);
 							fReader.close();
+							this.storageManager.write(txt, fName);
 						}
-						cacheCnt++;
-						console.log(`导入${cacheCnt}个文件`);
-						arr = [txt, txt2];
-					} else {
-						arr.push(txt);
-						arr.push(txt2);
+						
 					}
+					
+					cacheCnt++;
+					console.log(`导入${cacheCnt}个文件`);
+					arr = [txt];
 				} else {
 					arr.push(txt)
 				}
-				// 校验该数据是否为标题，如果不是标题，放入数组；否则存入文件，再新建一个文件
+			}
+			// 最后一个文件
+			if (arr.length) {
+				let sessionName = arr[0];
+				let fName = "session_" + cacheCnt;
+				if (this.storageManager.exists(sessionName, fName)) {
+					
+				} else {
+					let data = JSON.stringify(arr);
+					let f = new File(txtCachePath + "/" + fName);
+					if (!f.exists()) {
+						f.createNewFile(); //创建文件
+						let fReader = new FileWriter(txtCachePath + "/" + fName, true);
+						fReader.write(data);
+						fReader.close();
+						this.storageManager.write(txt, fName);
+					}
+				}
+				
+				console.log(`导入${cacheCnt}个文件`);
+				arr = [];
 			}
 		} catch(e) {
 			console.log(e)
 		}
 		
+		this.storageManager.complete();
 		console.log(`导入完成`);
+	}
+}
+
+class StorageManager {
+	constructor() {
+		this.bookName = "";
+		this.storage = null;
+		
+		this.sessionMap = {};
+		
+		this.storageKey = "";
+	}
+	
+	init(bookName) {
+		this.bookName = bookName;
+		let storageKey = "book_" + bookName;
+		this.storageKey = storageKey;
+		let bookStorage = uni.getStorageSync(storageKey);
+		// let bookStorage = uni.removeStorageSync(storageKey);
+		if (!bookStorage) {
+			uni.setStorageSync(storageKey, JSON.stringify({ 
+				allImport: false, 
+				current: {
+					session: "",
+					page: 0
+				},
+				sessionList: [],
+			}));
+			bookStorage = uni.getStorageSync(storageKey);
+		}
+		try {
+			this.storage = JSON.parse(bookStorage);
+			
+			for (let item of this.storage.sessionList) {
+				this.sessionMap[item.sessionName] = item.file;
+			}
+		} catch(e) {
+			uni.removeStorageSync(storageKey);
+			this.init(bookName);
+		}
+	}
+	
+	exists(sessionName, fileName) {
+		return this.sessionMap[sessionName] == fileName;
+	}
+	
+	write(sessionName, fileName) {
+		if (!this.storage) {
+			return;
+		}
+		this.storage.sessionList.push({
+			sessionName,
+			file: fileName
+		});
+		this.sessionMap[sessionName] = fileName;
+		uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
+	}
+	
+	complete() {
+		this.storage.allImport = true;
+		uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
 	}
 }
 
