@@ -33,7 +33,7 @@
 
 <script>
 	import fileManager from "../../components/file-manager/file-manager.vue";
-	import FileImporter from "../../utils/fileImporter.js";
+	import { FileImporter } from "../../utils/fileManager.js";
 	
 	export default {
 		data() {

@@ -33,13 +33,13 @@ class FileImporter {
 	
 	importFile(file) {
 		console.log("导入中");
+		
 		this.importing = true;
 		
 		let path = file.fullPath;
 		let name = file.name;
 		
 		this.storageManager.init(name);
-		// return;
 		
 		if (this.storageManager.storage.allImport) {
 			// 已有导入
@@ -179,4 +179,71 @@ class StorageManager {
 	}
 }
 
-export default FileImporter;
+class BookReader {
+	constructor() {
+		this.bookName = "";
+		this.sessionName = "";
+		
+		this.sessionMap = {};
+		
+		this.storage = null;
+	}
+	
+	init(bookName) {
+		this.bookName = bookName;
+		
+		let storageKey = "book_" + bookName;
+		let bookStorage = uni.getStorageSync(storageKey);
+		
+		if (!bookStorage) {
+			return { message: "初始化失败，找不到指定书籍", code: 401 }
+		}
+		
+		try {
+			this.storage = JSON.parse(bookStorage);
+			
+			for (let item of this.storage.sessionList) {
+				this.sessionMap[item.sessionName] = item.file;
+			}
+			
+			return { message: "初始化成功", code: 200 }
+		} catch(e) {
+			return { message: "数据错误，请重新导入", code: 402 }
+		}
+	}
+	
+	getData() {
+		let { session, page } = this.storage.current;
+		let targetFile = null;
+		let txtData = "";
+		if (!session) {
+			try {
+				// targetFile = this.storage.sessionList[0].file;
+				targetFile = this.storage.sessionList[1].file;
+			} catch(e) {
+				return { message: "无数据", code: 401 };
+			}
+		} else {
+			targetFile = this.sessionMap[session];
+		}
+		
+		let filePath = sdRoot + "/OOReader/" + this.bookName.replace(".txt", "") + "/" + targetFile;
+		let txtFile = new File(filePath);
+		try {
+			let reader = new BufferedReader(new FileReader(txtFile));
+			let txt = reader.readLine();
+			
+			let arr = null;
+			try {
+				arr = JSON.parse(txt);
+				return { message: "获取成功", code: 200, data: arr }
+			} catch (e) {
+				return { message: "获取失败", code: 403 }
+			}
+		} catch (e) {
+			return { message: "获取失败", code: 402 }
+		}
+	}
+}
+
+export { FileImporter, BookReader };

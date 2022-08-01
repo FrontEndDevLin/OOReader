@@ -1,23 +1,73 @@
 <template>
-	<view class="reader" id="reader" v-if="path">
-		<web-view :src="path"></web-view>
+	<view class="reader" id="reader" :style="{ paddingTop: layout.paddingTop + 'px', paddingBottom: layout.paddingBottom + 'px' }">
+		<view class="inner" id="content">
+			<view :class="idx == 0 ? 'item title' : 'item'" v-for="txt, idx of viewArr">
+				{{ txt }}
+			</view>
+		</view>
 	</view>
 </template>
 
 <script>
+	import { BookReader } from "../../utils/fileManager";
+	
+	/**
+	 * 标题占两个行高，字号为一个行高
+	 * 字号与行高
+	 * 14 -> 21
+	 * 16 -> 24
+	 * 18 -> 27
+	 * 20 -> 30
+	 * 22 -> 33
+	 * 24 -> 36
+	 * 
+	 * 初始化使用屏幕高度 / 行高，得到最多可显示的行数，
+	 * 
+	 */
+	
 	export default {
 		data() {
 			return {
-				path: ""
+				path: "",
+				
+				layout: {
+					paddingTop: 0,
+					paddingBottom: 0
+				},
+				
+				viewArr: []
 			}
 		},
 		onLoad(option) {
+			// return;
+			// let sysInfo = uni.getSystemInfoSync();
+			// let screenHeight = sysInfo.screenHeight;
+			// console.log(screenHeight);
 			// console.log(option.path);
-			this.path = "/hybrid/html/reader.html?bookpath=" + "/storage/emulated/0/Download/全职艺术家.txt";
-			// this.path = "http://192.168.88.145:4449/html/reader.html?bookpath=" + "/storage/emulated/0/Download/程序员健康指南.epub";
+			let bookName = "全职艺术家.txt";
+			let bookReader = new BookReader();
+			let initRes = bookReader.init(bookName);
+			
+			let data = bookReader.getData();
+			if (data.code == 200) {
+				this.viewArr = data.data;
+			}
 		},
 		created() {
 			// console.log() 
+		},
+		mounted() {
+			const query = uni.createSelectorQuery().in(this);
+			query.select('#content').boundingClientRect(data => {
+				let height = data.height;
+				let intHeight = parseInt(height);
+				let dblHeight = height - intHeight;
+				// console.log(dblHeight)
+				this.layout.paddingTop = 20 + dblHeight;
+				this.layout.paddingBottom = 20;
+				
+				console.log(height - this.layout.paddingTop - this.layout.paddingBottom);
+			}).exec();
 		},
 		methods: {
 			
@@ -29,6 +79,22 @@
 	.reader {
 		width: 100%;
 		height: 100vh;
-		background-color: #fff;
+		background-color: #ddd;
+		
+		.inner {
+			background-color: #fff;
+			width: 100%;
+			height: 100%;
+			overflow: auto;
+			
+			.item {
+				font-size: 14px;
+				line-height: 21px;
+				&.title {
+					// font-size: 16px;
+				}
+			}
+		}
+		
 	}
 </style>
