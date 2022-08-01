@@ -1,7 +1,15 @@
 <template>
 	<view class="reader" id="reader" :style="{ paddingTop: layout.paddingTop + 'px', paddingBottom: layout.paddingBottom + 'px' }">
 		<view class="inner" id="content">
-			<view :class="idx == 0 ? 'item title' : 'item'" v-for="txt, idx of viewArr">
+			<view 
+				:class="idx == 0 ? 'item title' : 'item'" 
+				v-for="txt, idx of viewArr"
+				:style="{
+					fontSize: layout.fontSize,
+					height: layout.height,
+					lineHeight: layout.lineHeight
+				}"
+			>
 				{{ txt }}
 			</view>
 		</view>
@@ -32,7 +40,11 @@
 				
 				layout: {
 					paddingTop: 0,
-					paddingBottom: 0
+					paddingBottom: 0,
+					
+					fontSize: "14px",
+					height: 0,
+					lineHeight: "21px",
 				},
 				
 				viewArr: []
@@ -63,10 +75,16 @@
 				let intHeight = parseInt(height);
 				let dblHeight = height - intHeight;
 				// console.log(dblHeight)
-				this.layout.paddingTop = 20 + dblHeight;
+				this.layout.paddingTop = dblHeight;
 				this.layout.paddingBottom = 20;
 				
-				console.log(height - this.layout.paddingTop - this.layout.paddingBottom);
+				let contentHeight = height - this.layout.paddingTop - this.layout.paddingBottom;
+				// console.log(contentHeight);
+				let lineCnt = contentHeight / parseInt(this.layout.lineHeight);
+				lineCnt = parseInt(lineCnt) - 1;
+				let newContentHeight = lineCnt * parseInt(this.layout.lineHeight);
+				// console.log(newContentHeight);
+				this.layout.paddingTop += contentHeight - newContentHeight;
 			}).exec();
 		},
 		methods: {
@@ -88,8 +106,8 @@
 			overflow: auto;
 			
 			.item {
-				font-size: 14px;
-				line-height: 21px;
+				// font-size: 14px;
+				// line-height: 21px;
 				&.title {
 					// font-size: 16px;
 				}
