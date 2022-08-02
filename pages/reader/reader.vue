@@ -22,12 +22,12 @@
 	/**
 	 * 标题占两个行高，字号为一个行高
 	 * 字号与行高
-	 * 14 -> 21
-	 * 16 -> 24
-	 * 18 -> 27
-	 * 20 -> 30
-	 * 22 -> 33
-	 * 24 -> 36
+	 * 14 -> 28
+	 * 16 -> 32
+	 * 18 -> 36
+	 * 20 -> 40
+	 * 22 -> 44
+	 * 24 -> 48
 	 * 
 	 * 初始化使用屏幕高度 / 行高，得到最多可显示的行数，
 	 * 
@@ -42,9 +42,8 @@
 					paddingTop: 0,
 					paddingBottom: 0,
 					
-					fontSize: "14px",
-					height: 0,
-					lineHeight: "21px",
+					fontSize: "18px",
+					lineHeight: "36px",
 				},
 				
 				viewArr: []
@@ -76,15 +75,17 @@
 				let dblHeight = height - intHeight;
 				// console.log(dblHeight)
 				this.layout.paddingTop = dblHeight;
-				this.layout.paddingBottom = 20;
+				this.layout.paddingBottom = 10;
 				
 				let contentHeight = height - this.layout.paddingTop - this.layout.paddingBottom;
 				// console.log(contentHeight);
 				let lineCnt = contentHeight / parseInt(this.layout.lineHeight);
 				lineCnt = parseInt(lineCnt) - 1;
 				let newContentHeight = lineCnt * parseInt(this.layout.lineHeight);
-				// console.log(newContentHeight);
-				this.layout.paddingTop += contentHeight - newContentHeight;
+				console.log(newContentHeight);
+				let offset = contentHeight - newContentHeight;
+				this.layout.paddingTop += offset / 2;
+				this.layout.paddingBottom += offset / 2;
 			}).exec();
 		},
 		methods: {
