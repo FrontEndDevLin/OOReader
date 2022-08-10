@@ -8,8 +8,7 @@
 					v-for="txt, idx of viewArr"
 					:style="{
 						fontSize: layout.fontSize,
-						lineHeight: layout.lineHeight,
-						background: getRandomColor()
+						lineHeight: layout.lineHeight
 					}"
 				>
 					{{ txt }}
@@ -112,7 +111,7 @@
 					query2.select("#page").boundingClientRect(data => {
 						let totalHeight = data.height;
 						let pageCnt = Math.ceil(totalHeight / newContentHeight);
-						for (let page = 1; page < pageCnt; page++) {
+						for (let page = 1; page <= pageCnt; page++) {
 							this.pageList.push({
 								page: page,
 								top: (page - 1) * newContentHeight
@@ -121,7 +120,7 @@
 						
 						// temp
 						this.pageOptions.prev.top = this.pageList[0].top + "px";
-						this.pageOptions.current.top = this.pageList[0].top + "px";
+						this.pageOptions.current.top = this.pageList[1].top + "px";
 						this.pageOptions.next.top = this.pageList[2].top + "px";
 					}).exec();
 					
@@ -169,7 +168,6 @@
 				top: 0;
 				left: 0;
 				z-index: 2;
-				background-color: red;
 			}
 			.page.prev {
 				position: absolute;
