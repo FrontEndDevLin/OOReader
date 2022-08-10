@@ -170,6 +170,7 @@ class StorageManager {
 			file: fileName
 		});
 		this.sessionMap[sessionName] = fileName;
+		console.log(this.storage);
 		uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
 	}
 	

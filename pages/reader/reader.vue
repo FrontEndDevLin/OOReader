@@ -1,16 +1,22 @@
 <template>
 	<view class="reader" id="reader" :style="{ paddingTop: layout.paddingTop + 'px', paddingBottom: layout.paddingBottom + 'px' }">
 		<view class="inner" id="content">
-			<view 
-				:class="idx == 0 ? 'item title' : 'item'" 
-				v-for="txt, idx of viewArr"
-				:style="{
-					fontSize: layout.fontSize,
-					height: layout.height,
-					lineHeight: layout.lineHeight
-				}"
-			>
-				{{ txt }}
+			<view class="page prev"></view>
+			<view class="page current" id="page" :style="{ top: '-' + pageOptions.current.top }">
+				<view 
+					:class="idx == 0 ? 'item title' : 'item'" 
+					v-for="txt, idx of viewArr"
+					:style="{
+						fontSize: layout.fontSize,
+						lineHeight: layout.lineHeight,
+						background: getRandomColor()
+					}"
+				>
+					{{ txt }}
+				</view>
+			</view>
+			<view class="page next">
+				
 			</view>
 		</view>
 	</view>
@@ -46,7 +52,20 @@
 					lineHeight: "36px",
 				},
 				
-				viewArr: []
+				viewArr: [],
+				
+				pageList: [],
+				pageOptions: {
+					prev: {
+						top: "",
+					},
+					current: {
+						top: ""
+					},
+					next: {
+						top: ""
+					}
+				}
 			}
 		},
 		onLoad(option) {
@@ -60,6 +79,7 @@
 			let initRes = bookReader.init(bookName);
 			
 			let data = bookReader.getData();
+			
 			if (data.code == 200) {
 				this.viewArr = data.data;
 			}
@@ -86,10 +106,42 @@
 				let offset = contentHeight - newContentHeight;
 				this.layout.paddingTop += offset / 2;
 				this.layout.paddingBottom += offset / 2;
+				
+				this.$nextTick(() => {
+					let query2 = uni.createSelectorQuery().in(this);
+					query2.select("#page").boundingClientRect(data => {
+						let totalHeight = data.height;
+						let pageCnt = Math.ceil(totalHeight / newContentHeight);
+						for (let page = 1; page < pageCnt; page++) {
+							this.pageList.push({
+								page: page,
+								top: (page - 1) * newContentHeight
+							});
+						}
+						
+						// temp
+						this.pageOptions.prev.top = this.pageList[0].top + "px";
+						this.pageOptions.current.top = this.pageList[0].top + "px";
+						this.pageOptions.next.top = this.pageList[2].top + "px";
+					}).exec();
+					
+					let query3 = uni.createSelectorQuery().in(this);
+					query3.select(".item").boundingClientRect(data => {
+						console.log(data)
+					}).exec()
+				});
+				
 			}).exec();
 		},
 		methods: {
-			
+			getRandomColor() {
+				let color = "#";
+				for (let i = 0; i < 3; i++) {
+					let n = parseInt(Math.random() * 10);
+					color += n;
+				}
+				return color;
+			}
 		}
 	}
 </script>
@@ -98,17 +150,45 @@
 	.reader {
 		width: 100%;
 		height: 100vh;
-		background-color: #ddd;
+		// background-color: #ddd;
 		
 		.inner {
-			background-color: #fff;
 			width: 100%;
 			height: 100%;
-			overflow: auto;
+			overflow: hidden;
+			position: relative;
+			
+			.page {
+				width: 100%;
+				// height: 100%;
+				background-color: #fff;
+			}
+			
+			.page.current {
+				position: absolute;
+				top: 0;
+				left: 0;
+				z-index: 2;
+				background-color: red;
+			}
+			.page.prev {
+				position: absolute;
+				top: 0;
+				left: -100%;
+				z-index: 3;
+			}
+			.page.next {
+				position: absolute;
+				top: 0;
+				left: 0;
+				z-index: 1;
+			}
 			
 			.item {
 				// font-size: 14px;
 				// line-height: 21px;
+				// border: 1px solid #000;
+				box-sizing: border-box;
 				&.title {
 					// font-size: 16px;
 				}
