@@ -1,8 +1,17 @@
 <template>
-	<view class="reader" id="reader" :style="{ paddingTop: layout.paddingTop + 'px', paddingBottom: layout.paddingBottom + 'px' }">
+	<web-view src="/hybrid/html/reader.html" ref="webView"></web-view>
+	<!-- <view class="reader" id="reader" style="display: none;">
 		<view class="inner" id="content">
-			<view class="page prev"></view>
-			<view class="page current" id="page" :style="{ top: '-' + pageOptions.current.top }">
+			<scroll-view 
+				class="page current" 
+				id="page" 
+				ref="page"
+				:style="{
+					paddingTop: layout.paddingTop + 'px', 
+					paddingBottom: layout.paddingBottom + 'px',
+					columns: layout.pageWidth + ' 1'
+				}"
+			>
 				<view 
 					:class="idx == 0 ? 'item title' : 'item'" 
 					v-for="txt, idx of viewArr"
@@ -13,12 +22,9 @@
 				>
 					{{ txt }}
 				</view>
-			</view>
-			<view class="page next">
-				
-			</view>
+			</scroll-view>
 		</view>
-	</view>
+	</view> -->
 </template>
 
 <script>
@@ -44,6 +50,8 @@
 				path: "",
 				
 				layout: {
+					pageWidth: "",
+					
 					paddingTop: 0,
 					paddingBottom: 0,
 					
@@ -87,6 +95,10 @@
 			// console.log() 
 		},
 		mounted() {
+			let currentWebview = this.$scope.$getAppWebview();
+			let wv = currentWebview.children()[0];
+			wv.evalJS("getData('" + JSON.stringify(this.viewArr) + "')");
+			return;
 			const query = uni.createSelectorQuery().in(this);
 			query.select('#content').boundingClientRect(data => {
 				let height = data.height;
@@ -101,32 +113,42 @@
 				let lineCnt = contentHeight / parseInt(this.layout.lineHeight);
 				lineCnt = parseInt(lineCnt) - 1;
 				let newContentHeight = lineCnt * parseInt(this.layout.lineHeight);
-				console.log(newContentHeight);
 				let offset = contentHeight - newContentHeight;
 				this.layout.paddingTop += offset / 2;
 				this.layout.paddingBottom += offset / 2;
 				
-				this.$nextTick(() => {
+				let contentWidth = parseInt(data.width);
+				this.layout.pageWidth = contentWidth + "px";
+				
+				this.$nextTick(async () => {
+					console.log(program);
+					const page = await program.currentPage()
+					const element = await page.$('#page');
+					let h = await element.scrollWidth();
+					console.log(h)
+					
+					return;
 					let query2 = uni.createSelectorQuery().in(this);
 					query2.select("#page").boundingClientRect(data => {
-						let totalHeight = data.height;
-						let pageCnt = Math.ceil(totalHeight / newContentHeight);
-						for (let page = 1; page <= pageCnt; page++) {
-							this.pageList.push({
-								page: page,
-								top: (page - 1) * newContentHeight
-							});
-						}
+						let totalWidth = data.width;
+						console.log(data)
+						// let pageCnt = Math.ceil(totalHeight / newContentHeight);
+						// for (let page = 1; page < pageCnt; page++) {
+						// 	this.pageList.push({
+						// 		page: page,
+						// 		top: (page - 1) * newContentHeight
+						// 	});
+						// }
 						
 						// temp
-						this.pageOptions.prev.top = this.pageList[0].top + "px";
-						this.pageOptions.current.top = this.pageList[1].top + "px";
-						this.pageOptions.next.top = this.pageList[2].top + "px";
+						// this.pageOptions.prev.top = this.pageList[0].top + "px";
+						// this.pageOptions.current.top = this.pageList[0].top + "px";
+						// this.pageOptions.next.top = this.pageList[2].top + "px";
 					}).exec();
 					
 					let query3 = uni.createSelectorQuery().in(this);
 					query3.select(".item").boundingClientRect(data => {
-						console.log(data)
+						// console.log(data)
 					}).exec()
 				});
 				
@@ -154,38 +176,21 @@
 		.inner {
 			width: 100%;
 			height: 100%;
-			overflow: hidden;
+			
 			position: relative;
 			
 			.page {
-				width: 100%;
-				// height: 100%;
+				// width: 100%;
+				height: 100%;
 				background-color: #fff;
-			}
-			
-			.page.current {
-				position: absolute;
-				top: 0;
-				left: 0;
-				z-index: 2;
-			}
-			.page.prev {
-				position: absolute;
-				top: 0;
-				left: -100%;
-				z-index: 3;
-			}
-			.page.next {
-				position: absolute;
-				top: 0;
-				left: 0;
-				z-index: 1;
+				box-sizing: border-box;
 			}
 			
 			.item {
 				// font-size: 14px;
 				// line-height: 21px;
 				// border: 1px solid #000;
+				padding: 0 10px;
 				box-sizing: border-box;
 				&.title {
 					// font-size: 16px;
