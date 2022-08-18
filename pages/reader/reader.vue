@@ -1,5 +1,6 @@
 <template>
-	<web-view src="/hybrid/html/reader.html" ref="webView"></web-view>
+	<!-- <web-view src="/hybrid/html/reader.html" ref="webView"></web-view> -->
+	<web-view src="http://192.168.88.145:4449/videoPlay.html?playlist=ws://192.168.88.213:8300/jessica/live/rtsp/03,ws://192.168.88.213:8300/jessica/live/rtsp/04" ref="webView"></web-view>
 	<!-- <view class="reader" id="reader" style="display: none;">
 		<view class="inner" id="content">
 			<scroll-view 

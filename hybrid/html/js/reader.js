@@ -66,12 +66,13 @@ function getData(viewArr) {
 	let startX = null;
 	let endX = null;
 	
+	let readerEl = $("reader");
 	let el = $("page");
-	el.addEventListener("touchstart", event => {
+	readerEl.addEventListener("touchstart", event => {
 		startX = event.touches[0].clientX;
 	});
 	
-	el.addEventListener("touchend", event => {
+	readerEl.addEventListener("touchend", event => {
 		endX = event.changedTouches[0].clientX;
 		
 		// 左滑, 下一页
