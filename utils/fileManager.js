@@ -41,6 +41,8 @@ class FileImporter {
 		
 		this.storageManager.init(name);
 		
+		
+		
 		if (this.storageManager.storage.allImport) {
 			// 已有导入
 			return;
@@ -54,19 +56,30 @@ class FileImporter {
 		if (!directory.exists()) {
 			directory.mkdirs();
 		}
-		
 		let txtFile = new File(path);
 		try {
 			let reader = new BufferedReader(new FileReader(txtFile));
 			let arr = [];
 			let txt;
+			let sessionName = "";
 			let cacheCnt = 0;
 			while ((txt = reader.readLine()) != null) {
 				if (titleReg.test(txt)) {
-					let fName = "session_" + cacheCnt;
+					if (!arr.length) {
+						sessionName = txt;
+						arr = [sessionName];
+						continue;
+					}
 					
-					if (this.storageManager.exists(txt, fName)) {
-						console.log(`存在: ${txt}`);
+					let fName = "session_" + cacheCnt;
+					if (!sessionName) {
+						// arr里为序章内容
+						sessionName = arr[0];
+					} else {
+						// arr里为上一章内容
+					}
+					if (this.storageManager.exists(sessionName, fName)) {
+						console.log(`存在: ${sessionName}`);
 					} else {
 						let data = JSON.stringify(arr);
 						
@@ -76,21 +89,19 @@ class FileImporter {
 							let fReader = new FileWriter(txtCachePath + "/" + fName, true);
 							fReader.write(data);
 							fReader.close();
-							this.storageManager.write(txt, fName);
+							this.storageManager.write(sessionName, fName);
 						}
-						
 					}
-					
 					cacheCnt++;
 					console.log(`导入${cacheCnt}个文件`);
-					arr = [txt];
+					sessionName = txt;
+					arr = [sessionName];
 				} else {
 					arr.push(txt)
 				}
 			}
 			// 最后一个文件
 			if (arr.length) {
-				let sessionName = arr[0];
 				let fName = "session_" + cacheCnt;
 				if (this.storageManager.exists(sessionName, fName)) {
 					
@@ -102,7 +113,7 @@ class FileImporter {
 						let fReader = new FileWriter(txtCachePath + "/" + fName, true);
 						fReader.write(data);
 						fReader.close();
-						this.storageManager.write(txt, fName);
+						this.storageManager.write(sessionName, fName);
 					}
 				}
 				
@@ -139,7 +150,7 @@ class StorageManager {
 				allImport: false, 
 				current: {
 					session: "",
-					page: 0
+					page: 1
 				},
 				sessionList: [],
 			}));
@@ -155,6 +166,7 @@ class StorageManager {
 			uni.removeStorageSync(storageKey);
 			this.init(bookName);
 		}
+		console.log(this.storage);
 	}
 	
 	exists(sessionName, fileName) {
@@ -165,12 +177,13 @@ class StorageManager {
 		if (!this.storage) {
 			return;
 		}
+		console.log(sessionName);
+		console.log(fileName);
 		this.storage.sessionList.push({
 			sessionName,
 			file: fileName
 		});
 		this.sessionMap[sessionName] = fileName;
-		console.log(this.storage);
 		uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
 	}
 	
@@ -188,12 +201,17 @@ class BookReader {
 		this.sessionMap = {};
 		
 		this.storage = null;
+		
+		this.storageKey = "";
 	}
 	
 	init(bookName) {
 		this.bookName = bookName;
 		
 		let storageKey = "book_" + bookName;
+		this.storageKey = storageKey;
+		
+		// uni.removeStorageSync(storageKey);
 		let bookStorage = uni.getStorageSync(storageKey);
 		
 		if (!bookStorage) {
@@ -202,7 +220,6 @@ class BookReader {
 		
 		try {
 			this.storage = JSON.parse(bookStorage);
-			
 			for (let item of this.storage.sessionList) {
 				this.sessionMap[item.sessionName] = item.file;
 			}
@@ -213,6 +230,19 @@ class BookReader {
 		}
 	}
 	
+	// write(sessionName, fileName) {
+	// 	if (!this.storage) {
+	// 		return;
+	// 	}
+	// 	this.storage.sessionList.push({
+	// 		sessionName,
+	// 		file: fileName
+	// 	});
+	// 	this.sessionMap[sessionName] = fileName;
+	// 	console.log(this.storage);
+	// 	uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
+	// }
+	
 	getData() {
 		let { session, page } = this.storage.current;
 		let targetFile = null;
@@ -220,7 +250,7 @@ class BookReader {
 		if (!session) {
 			try {
 				// targetFile = this.storage.sessionList[0].file;
-				targetFile = this.storage.sessionList[1].file;
+				targetFile = this.storage.sessionList[2].file;
 			} catch(e) {
 				return { message: "无数据", code: 401 };
 			}
@@ -237,13 +267,25 @@ class BookReader {
 			let arr = null;
 			try {
 				arr = JSON.parse(txt);
-				return { message: "获取成功", code: 200, data: arr }
+				return { message: "获取成功", code: 200, data: { content: arr, page } }
 			} catch (e) {
 				return { message: "获取失败", code: 403 }
 			}
 		} catch (e) {
 			return { message: "获取失败", code: 402 }
 		}
+	}
+	
+	nextPage() {
+		this.storage.current.page++;
+		uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
+		console.log(this.storage.current);
+	}
+	
+	prevPage() {
+		this.storage.current.page--;
+		uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
+		console.log(this.storage.current);
 	}
 }
 

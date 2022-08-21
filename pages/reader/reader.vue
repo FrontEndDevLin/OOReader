@@ -1,6 +1,5 @@
 <template>
-	<!-- <web-view src="/hybrid/html/reader.html" ref="webView"></web-view> -->
-	<web-view src="http://192.168.88.145:4449/videoPlay.html?playlist=ws://192.168.88.213:8300/jessica/live/rtsp/03,ws://192.168.88.213:8300/jessica/live/rtsp/04" ref="webView"></web-view>
+	<web-view src="/hybrid/html/reader.html" ref="webView" @message="onMessage"></web-view>
 	<!-- <view class="reader" id="reader" style="display: none;">
 		<view class="inner" id="content">
 			<scroll-view 
@@ -48,6 +47,8 @@
 	export default {
 		data() {
 			return {
+				bookReader: null,
+				
 				path: "",
 				
 				layout: {
@@ -61,6 +62,7 @@
 				},
 				
 				viewArr: [],
+				page: 0,
 				
 				pageList: [],
 				pageOptions: {
@@ -84,12 +86,15 @@
 			// console.log(option.path);
 			let bookName = "全职艺术家.txt";
 			let bookReader = new BookReader();
+			this.bookReader = bookReader;
 			let initRes = bookReader.init(bookName);
 			
 			let data = bookReader.getData();
 			
 			if (data.code == 200) {
-				this.viewArr = data.data;
+				data = data.data;
+				this.viewArr = data.content;
+				this.page = data.page;
 			}
 		},
 		created() {
@@ -98,71 +103,22 @@
 		mounted() {
 			let currentWebview = this.$scope.$getAppWebview();
 			let wv = currentWebview.children()[0];
-			wv.evalJS("getData('" + JSON.stringify(this.viewArr) + "')");
-			return;
-			const query = uni.createSelectorQuery().in(this);
-			query.select('#content').boundingClientRect(data => {
-				let height = data.height;
-				let intHeight = parseInt(height);
-				let dblHeight = height - intHeight;
-				// console.log(dblHeight)
-				this.layout.paddingTop = dblHeight;
-				this.layout.paddingBottom = 10;
-				
-				let contentHeight = height - this.layout.paddingTop - this.layout.paddingBottom;
-				// console.log(contentHeight);
-				let lineCnt = contentHeight / parseInt(this.layout.lineHeight);
-				lineCnt = parseInt(lineCnt) - 1;
-				let newContentHeight = lineCnt * parseInt(this.layout.lineHeight);
-				let offset = contentHeight - newContentHeight;
-				this.layout.paddingTop += offset / 2;
-				this.layout.paddingBottom += offset / 2;
-				
-				let contentWidth = parseInt(data.width);
-				this.layout.pageWidth = contentWidth + "px";
-				
-				this.$nextTick(async () => {
-					console.log(program);
-					const page = await program.currentPage()
-					const element = await page.$('#page');
-					let h = await element.scrollWidth();
-					console.log(h)
-					
-					return;
-					let query2 = uni.createSelectorQuery().in(this);
-					query2.select("#page").boundingClientRect(data => {
-						let totalWidth = data.width;
-						console.log(data)
-						// let pageCnt = Math.ceil(totalHeight / newContentHeight);
-						// for (let page = 1; page < pageCnt; page++) {
-						// 	this.pageList.push({
-						// 		page: page,
-						// 		top: (page - 1) * newContentHeight
-						// 	});
-						// }
-						
-						// temp
-						// this.pageOptions.prev.top = this.pageList[0].top + "px";
-						// this.pageOptions.current.top = this.pageList[0].top + "px";
-						// this.pageOptions.next.top = this.pageList[2].top + "px";
-					}).exec();
-					
-					let query3 = uni.createSelectorQuery().in(this);
-					query3.select(".item").boundingClientRect(data => {
-						// console.log(data)
-					}).exec()
-				});
-				
-			}).exec();
+			
+			wv.evalJS("getData('" + JSON.stringify(this.viewArr) + "', " + this.page + ")");
 		},
 		methods: {
-			getRandomColor() {
-				let color = "#";
-				for (let i = 0; i < 3; i++) {
-					let n = parseInt(Math.random() * 10);
-					color += n;
+			onMessage(e) {
+				let event = e.detail.data[0];
+				switch (event.action){
+					case "E_NEXT_PAGE": {
+						this.bookReader.nextPage();
+					} break;
+					case "E_PREV_PAGE": {
+						this.bookReader.prevPage();
+					} break;
+					default:
+						break;
 				}
-				return color;
 			}
 		}
 	}

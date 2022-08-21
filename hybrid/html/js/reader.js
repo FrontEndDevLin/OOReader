@@ -2,7 +2,7 @@ function $(id) {
 	return document.getElementById(id);
 }
 function nextTick(cb) {
-	setTimeout(cb);
+	setTimeout(cb, 50);
 }
 
 let layout = {
@@ -40,8 +40,9 @@ let pageOptions = {
 })();
 
 
-function getData(viewArr) {
+function getData(viewArr, page) {
 	viewArr = JSON.parse(viewArr);
+	let el = $("page");
 	
 	let txtHtml = "";
 	for (let txt of viewArr) {
@@ -49,17 +50,31 @@ function getData(viewArr) {
 			${txt}
 		</div>`
 	}
-	$("page").innerHTML = txtHtml;
+	el.innerHTML = txtHtml;
 	
 	nextTick(() => {
-		let el = $("page");
 		let totalW = el.scrollWidth;
 		let pageW = Number(getComputedStyle(el).width.replace("px", ""));
 		Object.assign(pageOptions, {
-			current: 1,
+			current: page,
 			total: Math.round(totalW / pageW)
 		});
+		move({ animation: false });
 	})
+}
+
+function move({ animation = true } = {}) {
+	let el = $("page");
+	let current = pageOptions.current;
+	if (animation) {
+		el.style.transform = "translateX(-" + (current - 1) * 100 + "vw)";
+	} else {
+		el.style.transition = "none";
+		el.style.transform = "translateX(-" + (current - 1) * 100 + "vw)";
+		nextTick(() => {
+			el.style.transition = "transform .2s";
+		})
+	}
 }
 
 (() => {
@@ -81,8 +96,13 @@ function getData(viewArr) {
 			if (current >= pageOptions.total) {
 				return;
 			}
-			el.style.transform = "translateX(-" + current * 100 + "vw)";
 			pageOptions.current++;
+			move();
+			uni.postMessage({
+				data: {
+					action: "E_NEXT_PAGE"
+				}
+			});
 		}
 		// 右滑 上一页
 		else if (startX < endX) {
@@ -90,7 +110,12 @@ function getData(viewArr) {
 				return;
 			}
 			pageOptions.current--;
-			el.style.transform = "translateX(-" + (pageOptions.current - 1) * 100 + "vw)";
+			move();
+			uni.postMessage({
+				data: {
+					action: "E_PREV_PAGE"
+				}
+			});
 		}
 		else {
 			console.log("不动");
