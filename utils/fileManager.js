@@ -227,6 +227,7 @@ class BookReader {
 				this.sessionMap[item.sessionName] = {
 					prev: i > 0 ? sessionList[i - 1] : null,
 					file: item.file,
+					arr: null,
 					next: i < sessionList.length ? sessionList[i + 1] : null
 				};
 			}
