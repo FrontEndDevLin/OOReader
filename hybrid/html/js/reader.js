@@ -15,6 +15,11 @@ let pageOptions = {
 	total: 0
 };
 
+let preloadOptions = {
+	next: false,
+	prev: false
+};
+
 (function () {
 	let styleSheet = getComputedStyle($("content"));
 	let height = Number(styleSheet.height.replace("px", ""));
@@ -40,7 +45,7 @@ let pageOptions = {
 })();
 
 
-function getData(viewArr, page) {
+function initView(viewArr, page) {
 	viewArr = JSON.parse(viewArr);
 	let el = $("page");
 	
@@ -60,7 +65,25 @@ function getData(viewArr, page) {
 			total: Math.round(totalW / pageW)
 		});
 		move({ animation: false });
+		
+		if (pageOptions.total < 3) {
+			// 预加载
+			uni.postMessage({
+				data: {
+					action: "E_PRELOAD",
+					type: "next"
+				}
+			});
+		} else {
+			if (pageOptions.total - page <= 1) {
+				// 预加载下一章
+			}
+		}
 	})
+}
+
+function prevLoad() {
+	
 }
 
 function move({ animation = true } = {}) {

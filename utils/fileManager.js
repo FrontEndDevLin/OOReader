@@ -177,8 +177,6 @@ class StorageManager {
 		if (!this.storage) {
 			return;
 		}
-		console.log(sessionName);
-		console.log(fileName);
 		this.storage.sessionList.push({
 			sessionName,
 			file: fileName
@@ -203,6 +201,9 @@ class BookReader {
 		this.storage = null;
 		
 		this.storageKey = "";
+		
+		this.prev = null;
+		this.next = null;
 	}
 	
 	init(bookName) {
@@ -220,8 +221,19 @@ class BookReader {
 		
 		try {
 			this.storage = JSON.parse(bookStorage);
-			for (let item of this.storage.sessionList) {
-				this.sessionMap[item.sessionName] = item.file;
+			let sessionList = this.storage.sessionList;
+			for (let i = 0; i < sessionList.length; i++) {
+				let item = sessionList[i];
+				this.sessionMap[item.sessionName] = {
+					prev: i > 0 ? sessionList[i - 1] : null,
+					file: item.file,
+					next: i < sessionList.length ? sessionList[i + 1] : null
+				};
+			}
+			
+			if (!this.storage.current.sessionName) {
+				this.storage.current.session = sessionList[1].sessionName;
+				// TODO: 写缓存
 			}
 			
 			return { message: "初始化成功", code: 200 }
@@ -243,19 +255,52 @@ class BookReader {
 	// 	uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
 	// }
 	
-	getData() {
+	preloadData(type) {
+		if (type == "next") {
+			if (this.next) {
+				let targetFile = this.next.file;
+				let filePath = sdRoot + "/OOReader/" + this.bookName.replace(".txt", "") + "/" + targetFile;
+				let txtFile = new File(filePath);
+				try {
+					let reader = new BufferedReader(new FileReader(txtFile));
+					let txt = reader.readLine();
+					
+					let arr = null;
+					try {
+						arr = JSON.parse(txt);
+						return { message: "获取成功", code: 200, data: { content: arr, page: 1 } }
+					} catch (e) {
+						return { message: "获取失败", code: 403 }
+					}
+				} catch (e) {
+					return { message: "获取失败", code: 402 }
+				}
+			}
+		}
+	}
+	
+	initData() {
 		let { session, page } = this.storage.current;
 		let targetFile = null;
 		let txtData = "";
 		if (!session) {
 			try {
-				// targetFile = this.storage.sessionList[0].file;
-				targetFile = this.storage.sessionList[2].file;
+				let current = this.storage.sessionList[1];
+				targetFile = current.file;
+				session = current.sessionName;
+				
+				this.next = this.storage.sessionList[2];
 			} catch(e) {
 				return { message: "无数据", code: 401 };
 			}
 		} else {
-			targetFile = this.sessionMap[session];
+			targetFile = this.sessionMap[session].file;
+			this.prev = this.sessionMap[session].prev;
+			this.next = this.sessionMap[session].next;
+			
+			// console.log(this.prev)
+			// console.log(targetFile)
+			// console.log(this.next)
 		}
 		
 		let filePath = sdRoot + "/OOReader/" + this.bookName.replace(".txt", "") + "/" + targetFile;
@@ -267,6 +312,7 @@ class BookReader {
 			let arr = null;
 			try {
 				arr = JSON.parse(txt);
+				// this.storage.current.session = 
 				return { message: "获取成功", code: 200, data: { content: arr, page } }
 			} catch (e) {
 				return { message: "获取失败", code: 403 }

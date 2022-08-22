@@ -89,7 +89,7 @@
 			this.bookReader = bookReader;
 			let initRes = bookReader.init(bookName);
 			
-			let data = bookReader.getData();
+			let data = bookReader.initData();
 			
 			if (data.code == 200) {
 				data = data.data;
@@ -104,20 +104,24 @@
 			let currentWebview = this.$scope.$getAppWebview();
 			let wv = currentWebview.children()[0];
 			
-			wv.evalJS("getData('" + JSON.stringify(this.viewArr) + "', " + this.page + ")");
+			wv.evalJS("initView('" + JSON.stringify(this.viewArr) + "', " + this.page + ")");
 		},
 		methods: {
 			onMessage(e) {
-				let event = e.detail.data[0];
-				switch (event.action){
+				let oMsg = e.detail.data[0];
+				switch (oMsg.action){
 					case "E_NEXT_PAGE": {
 						this.bookReader.nextPage();
 					} break;
 					case "E_PREV_PAGE": {
 						this.bookReader.prevPage();
 					} break;
-					default:
-						break;
+					case "E_PRELOAD": {
+						if (oMsg.type == "next") {
+							// 预载下一章
+							console.log(this.bookReader.preloadData("next"))
+						}
+					} break;
 				}
 			}
 		}
