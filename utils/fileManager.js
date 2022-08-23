@@ -260,15 +260,21 @@ class BookReader {
 		if (type == "next") {
 			if (this.next) {
 				let targetFile = this.next.file;
+				let session = this.next.sessionName;
+				let arr = this.sessionMap[session].arr;
+				if (arr) {
+					return { message: "获取成功", code: 304, data: { content: arr, page: 1 } };
+				}
+				
 				let filePath = sdRoot + "/OOReader/" + this.bookName.replace(".txt", "") + "/" + targetFile;
 				let txtFile = new File(filePath);
 				try {
 					let reader = new BufferedReader(new FileReader(txtFile));
 					let txt = reader.readLine();
 					
-					let arr = null;
 					try {
 						arr = JSON.parse(txt);
+						this.sessionMap[session].arr = arr;
 						return { message: "获取成功", code: 200, data: { content: arr, page: 1 } }
 					} catch (e) {
 						return { message: "获取失败", code: 403 }
@@ -333,6 +339,16 @@ class BookReader {
 		this.storage.current.page--;
 		uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
 		console.log(this.storage.current);
+	}
+	
+	nextSession() {
+		let sessionName = this.next.sessionName;
+		this.storage.current.session = sessionName;
+		this.storage.current.page = 1;
+		
+		this.next = this.sessionMap[sessionName].next;
+		this.prev = this.sessionMap[sessionName].prev;
+		// TODO: 写缓存
 	}
 }
 

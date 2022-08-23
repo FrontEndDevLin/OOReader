@@ -47,6 +47,7 @@
 	export default {
 		data() {
 			return {
+				wv: null,
 				bookReader: null,
 				
 				path: "",
@@ -102,9 +103,9 @@
 		},
 		mounted() {
 			let currentWebview = this.$scope.$getAppWebview();
-			let wv = currentWebview.children()[0];
+			this.wv = currentWebview.children()[0];
 			
-			wv.evalJS("initView('" + JSON.stringify(this.viewArr) + "', " + this.page + ")");
+			this.wv.evalJS("initView('" + JSON.stringify(this.viewArr) + "', " + this.page + ")");
 		},
 		methods: {
 			onMessage(e) {
@@ -119,8 +120,18 @@
 					case "E_PRELOAD": {
 						if (oMsg.type == "next") {
 							// 预载下一章
-							console.log(this.bookReader.preloadData("next"))
+							console.log("预加载");
+							let data = this.bookReader.preloadData("next");
+							if (data.code == 200) {
+								data = data.data;
+								let viewArr = data.content;
+								let page = data.page;
+								this.wv.evalJS("preload('" + JSON.stringify(viewArr) + "')");
+							}
 						}
+					} break;
+					case "E_NEXT_SESSION": {
+						this.bookReader.nextSession();
 					} break;
 				}
 			}

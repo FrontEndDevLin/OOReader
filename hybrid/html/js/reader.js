@@ -5,9 +5,18 @@ function nextTick(cb) {
 	setTimeout(cb, 50);
 }
 
+let el = {
+	contentEl: null,
+	pageEl: null,
+	nextContentEl: null,
+	nextPageEl: null
+};
+
 let layout = {
 	fontSize: "18px",
-	lineHeight: "36px"
+	lineHeight: "36px",
+	paddingTop: "",
+	paddingBottom: ""
 };
 
 let pageOptions = {
@@ -21,7 +30,8 @@ let preloadOptions = {
 };
 
 (function () {
-	let styleSheet = getComputedStyle($("content"));
+	let contentEl = $("content");
+	let styleSheet = getComputedStyle(contentEl);
 	let height = Number(styleSheet.height.replace("px", ""));
 	let intHeight = parseInt(height);
 	let dblHeight = height - intHeight;
@@ -36,18 +46,19 @@ let preloadOptions = {
 	let offset = contentHeight - newContentHeight;
 	paddingTop += offset / 2;
 	paddingBottom += offset / 2;
+	layout.paddingTop = paddingTop + "px";
+	layout.paddingBottom = paddingBottom + "px";
 	
 	let pageEl = $("page");
 	Object.assign(pageEl.style, {
-		paddingTop: paddingTop + "px",
-		paddingBottom: paddingBottom + "px"
+		paddingTop: layout.paddingTop,
+		paddingBottom: layout.paddingBottom
 	});
 })();
 
 
 function initView(viewArr, page) {
 	viewArr = JSON.parse(viewArr);
-	let el = $("page");
 	
 	let txtHtml = "";
 	for (let txt of viewArr) {
@@ -55,11 +66,15 @@ function initView(viewArr, page) {
 			${txt}
 		</div>`
 	}
-	el.innerHTML = txtHtml;
+	
+	el.contentEl = $("content");
+	el.pageEl = $("page");
+	
+	el.pageEl.innerHTML = txtHtml;
 	
 	nextTick(() => {
-		let totalW = el.scrollWidth;
-		let pageW = Number(getComputedStyle(el).width.replace("px", ""));
+		let totalW = el.pageEl.scrollWidth;
+		let pageW = Number(getComputedStyle(el.pageEl).width.replace("px", ""));
 		Object.assign(pageOptions, {
 			current: page,
 			total: Math.round(totalW / pageW)
@@ -77,27 +92,112 @@ function initView(viewArr, page) {
 		} else {
 			if (pageOptions.total - page <= 1) {
 				// 预加载下一章
+				uni.postMessage({
+					data: {
+						action: "E_PRELOAD",
+						type: "next"
+					}
+				});
 			}
 		}
 	})
 }
 
-function prevLoad() {
+function preload(viewArr) {
+	let contentEl = document.createElement("div");
+	contentEl.className = "content next";
+	let pageEl = document.createElement("div");
+	pageEl.className = "page";
+	Object.assign(pageEl.style, {
+		paddingTop: layout.paddingTop,
+		paddingBottom: layout.paddingBottom
+	});
+	contentEl.appendChild(pageEl);
 	
+	viewArr = JSON.parse(viewArr);
+	
+	let txtHtml = "";
+	for (let txt of viewArr) {
+		txtHtml += `<div style='font-size: ${layout.fontSize}; line-height: ${layout.lineHeight}; padding: 0 8px'>
+			${txt}
+		</div>`
+	}
+	pageEl.innerHTML = txtHtml;
+	
+	$("reader").appendChild(contentEl);
+	
+	el.nextContentEl = contentEl;
+	el.nextPageEl = pageEl;
 }
 
 function move({ animation = true } = {}) {
-	let el = $("page");
+	let pageEl = el.pageEl;
 	let current = pageOptions.current;
 	if (animation) {
-		el.style.transform = "translateX(-" + (current - 1) * 100 + "vw)";
+		pageEl.style.transform = "translateX(-" + (current - 1) * 100 + "vw)";
 	} else {
-		el.style.transition = "none";
-		el.style.transform = "translateX(-" + (current - 1) * 100 + "vw)";
+		pageEl.style.transition = "none";
+		pageEl.style.transform = "translateX(-" + (current - 1) * 100 + "vw)";
 		nextTick(() => {
-			el.style.transition = "transform .2s";
+			pageEl.style.transition = "transform .2s";
 		})
 	}
+}
+
+function loadNextSession() {
+	if (!el.nextContentEl) {
+		return;
+	}
+	el.nextContentEl.className = "content next move";
+	el.contentEl.id = "";
+	el.contentEl.className = "content prev";
+	el.pageEl.id = "";
+	
+	uni.postMessage({
+		data: {
+			action: "E_NEXT_SESSION"
+		}
+	});
+	
+	setTimeout(() => {
+		el.contentEl = el.nextContentEl;
+		el.pageEl = el.nextPageEl;
+		el.contentEl.id = "content";
+		el.pageEl.id = "page";
+		el.nextContentEl = null;
+		el.nextPageEl = null;
+		
+		nextTick(() => {
+			let totalW = el.pageEl.scrollWidth;
+			let pageW = Number(getComputedStyle(el.pageEl).width.replace("px", ""));
+			let page = 1;
+			Object.assign(pageOptions, {
+				current: page,
+				total: Math.round(totalW / pageW)
+			});
+			move({ animation: false });
+			
+			if (pageOptions.total < 3) {
+				// 预加载
+				uni.postMessage({
+					data: {
+						action: "E_PRELOAD",
+						type: "next"
+					}
+				});
+			} else {
+				if (pageOptions.total - page <= 1) {
+					// 预加载下一章
+					uni.postMessage({
+						data: {
+							action: "E_PRELOAD",
+							type: "next"
+						}
+					});
+				}
+			}
+		})
+	}, 200)
 }
 
 (() => {
@@ -105,7 +205,6 @@ function move({ animation = true } = {}) {
 	let endX = null;
 	
 	let readerEl = $("reader");
-	let el = $("page");
 	readerEl.addEventListener("touchstart", event => {
 		startX = event.touches[0].clientX;
 	});
@@ -117,6 +216,7 @@ function move({ animation = true } = {}) {
 		if (startX > endX) {
 			let current = pageOptions.current;
 			if (current >= pageOptions.total) {
+				loadNextSession();
 				return;
 			}
 			pageOptions.current++;
@@ -126,6 +226,16 @@ function move({ animation = true } = {}) {
 					action: "E_NEXT_PAGE"
 				}
 			});
+			
+			if (pageOptions.total - pageOptions.current <= 1) {
+				// 预加载下一章
+				uni.postMessage({
+					data: {
+						action: "E_PRELOAD",
+						type: "next"
+					}
+				});
+			}
 		}
 		// 右滑 上一页
 		else if (startX < endX) {
