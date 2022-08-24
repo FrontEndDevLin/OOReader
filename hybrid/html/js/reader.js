@@ -200,6 +200,10 @@ function loadNextSession() {
 	}, 200)
 }
 
+function loadPrevSession() {
+	
+}
+
 (() => {
 	let startX = null;
 	let endX = null;
@@ -240,6 +244,7 @@ function loadNextSession() {
 		// 右滑 上一页
 		else if (startX < endX) {
 			if (pageOptions.current <= 1) {
+				loadPrevSession();
 				return;
 			}
 			pageOptions.current--;
