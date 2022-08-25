@@ -6,6 +6,8 @@ function nextTick(cb) {
 }
 
 let el = {
+	prevContentEl: null,
+	prevPageEl: null,
 	contentEl: null,
 	pageEl: null,
 	nextContentEl: null,
@@ -100,10 +102,18 @@ function initView(viewArr, page) {
 				});
 			}
 		}
+		
+		// 预加载上一章
+		uni.postMessage({
+			data: {
+				action: "E_PRELOAD",
+				type: "prev"
+			}
+		});
 	})
 }
 
-function preload(viewArr) {
+function preloadNext(viewArr) {
 	let contentEl = document.createElement("div");
 	contentEl.className = "content next";
 	let pageEl = document.createElement("div");
@@ -128,6 +138,45 @@ function preload(viewArr) {
 	
 	el.nextContentEl = contentEl;
 	el.nextPageEl = pageEl;
+}
+
+function preloadPrev(viewArr) {
+	let contentEl = document.createElement("div");
+	contentEl.className = "content prev";
+	let pageEl = document.createElement("div");
+	pageEl.className = "page";
+	Object.assign(pageEl.style, {
+		paddingTop: layout.paddingTop,
+		paddingBottom: layout.paddingBottom
+	});
+	contentEl.appendChild(pageEl);
+	
+	viewArr = JSON.parse(viewArr);
+	
+	let txtHtml = "";
+	for (let txt of viewArr) {
+		txtHtml += `<div style='font-size: ${layout.fontSize}; line-height: ${layout.lineHeight}; padding: 0 8px'>
+			${txt}
+		</div>`
+	}
+	pageEl.innerHTML = txtHtml;
+	
+	$("reader").insertBefore(contentEl, el.contentEl);
+	
+	// 计算页数，翻到最后一页
+	nextTick(() => {
+		let totalW = pageEl.scrollWidth;
+		let pageW = Number(getComputedStyle(pageEl).width.replace("px", ""));
+		let total = Math.round(totalW / pageW);
+		pageEl.style.transition = "none";
+		pageEl.style.transform = "translateX(-" + (total - 1) * 100 + "vw)";
+		nextTick(() => {
+			pageEl.style.transition = "transform .2s";
+		})
+	})
+	
+	el.prevContentEl = contentEl;
+	el.prevPageEl = pageEl;
 }
 
 function move({ animation = true } = {}) {

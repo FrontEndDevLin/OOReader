@@ -257,32 +257,45 @@ class BookReader {
 	// }
 	
 	preloadData(type) {
+		let targetFile,
+			session,
+			arr;
 		if (type == "next") {
 			if (this.next) {
-				let targetFile = this.next.file;
-				let session = this.next.sessionName;
-				let arr = this.sessionMap[session].arr;
-				if (arr) {
-					return { message: "获取成功", code: 304, data: { content: arr, page: 1 } };
-				}
-				
-				let filePath = sdRoot + "/OOReader/" + this.bookName.replace(".txt", "") + "/" + targetFile;
-				let txtFile = new File(filePath);
-				try {
-					let reader = new BufferedReader(new FileReader(txtFile));
-					let txt = reader.readLine();
-					
-					try {
-						arr = JSON.parse(txt);
-						this.sessionMap[session].arr = arr;
-						return { message: "获取成功", code: 200, data: { content: arr, page: 1 } }
-					} catch (e) {
-						return { message: "获取失败", code: 403 }
-					}
-				} catch (e) {
-					return { message: "获取失败", code: 402 }
-				}
+				targetFile = this.next.file;
+				session = this.next.sessionName;
+			} else {
+				return;
 			}
+		} else if (type == "prev") {
+			if (this.prev) {
+				targetFile = this.prev.file;
+				session = this.prev.sessionName;
+			} else {
+				return;
+			}
+		}
+		
+		arr = this.sessionMap[session].arr;
+		if (arr) {
+			return { message: "获取成功", code: 304, data: { content: arr, page: 1 } };
+		}
+		
+		let filePath = sdRoot + "/OOReader/" + this.bookName.replace(".txt", "") + "/" + targetFile;
+		let txtFile = new File(filePath);
+		try {
+			let reader = new BufferedReader(new FileReader(txtFile));
+			let txt = reader.readLine();
+			
+			try {
+				arr = JSON.parse(txt);
+				this.sessionMap[session].arr = arr;
+				return { message: "获取成功", code: 200, data: { content: arr, page: 1 } }
+			} catch (e) {
+				return { message: "获取失败", code: 403 }
+			}
+		} catch (e) {
+			return { message: "获取失败", code: 402 }
 		}
 	}
 	

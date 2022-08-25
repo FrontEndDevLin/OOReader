@@ -125,8 +125,15 @@
 							if (data.code == 200) {
 								data = data.data;
 								let viewArr = data.content;
-								let page = data.page;
-								this.wv.evalJS("preload('" + JSON.stringify(viewArr) + "')");
+								// let page = data.page;
+								this.wv.evalJS("preloadNext('" + JSON.stringify(viewArr) + "')");
+							}
+						} else if (oMsg.type == "prev") {
+							let data = this.bookReader.preloadData("prev");
+							if (data.code == 200) {
+								data = data.data;
+								let viewArr = data.content;
+								this.wv.evalJS("preloadPrev('" + JSON.stringify(viewArr) + "')");
 							}
 						}
 					} break;
