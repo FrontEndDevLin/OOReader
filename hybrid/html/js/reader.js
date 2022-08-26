@@ -123,6 +123,7 @@ function preloadNext(viewArr) {
 		paddingBottom: layout.paddingBottom
 	});
 	contentEl.appendChild(pageEl);
+	pageEl.style.transition = "transform .2s";
 	
 	viewArr = JSON.parse(viewArr);
 	
@@ -209,6 +210,16 @@ function loadNextSession() {
 	});
 	
 	setTimeout(() => {
+		// 移除上上个
+		if (el.prevContentEl) {
+			$("reader").removeChild(el.prevContentEl);
+		}
+		el.prevContentEl = el.contentEl;
+		el.prevPageEl = el.pageEl;
+		el.prevContentEl.className = "content prev";
+		el.prevContentEl.id = "";
+		el.prevPageEl.id = "";
+		
 		el.contentEl = el.nextContentEl;
 		el.pageEl = el.nextPageEl;
 		el.contentEl.id = "content";
@@ -224,7 +235,6 @@ function loadNextSession() {
 				current: page,
 				total: Math.round(totalW / pageW)
 			});
-			move({ animation: false });
 			
 			if (pageOptions.total < 3) {
 				// 预加载
@@ -250,7 +260,56 @@ function loadNextSession() {
 }
 
 function loadPrevSession() {
+	if (!el.prevContentEl) {
+		return;
+	}
+	el.contentEl.className = "content next";
+	el.contentEl.id = "";
+	if (el.nextContentEl) {
+		// 通知移除缓存
+		// 移除下一个
+		$("reader").removeChild(el.nextContentEl);
+	} else {
+		// console.log("没有下一个");
+	}
+	el.nextContentEl = el.contentEl;
+	el.nextPageEl = el.pageEl;
 	
+	setTimeout(() => {
+		el.contentEl = el.prevContentEl;
+		el.pageEl = el.prevPageEl;
+		el.contentEl.className = "content";
+		el.contentEl.id = "content";
+		el.pageEl.id = "page";
+		
+		el.prevContentEl = null;
+		el.prevPageEl = null;
+		
+		nextTick(() => {
+			let totalW = el.pageEl.scrollWidth;
+			let pageW = Number(getComputedStyle(el.pageEl).width.replace("px", ""));
+			let total = Math.round(totalW / pageW);
+			Object.assign(pageOptions, {
+				current: total,
+				total: total
+			});
+			
+			uni.postMessage({
+				data: {
+					action: "E_PREV_SESSION",
+					page: total
+				}
+			});
+			
+			// 预加载上一章
+			uni.postMessage({
+				data: {
+					action: "E_PRELOAD",
+					type: "prev"
+				}
+			});
+		})
+	}, 200)
 }
 
 (() => {

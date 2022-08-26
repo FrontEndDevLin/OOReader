@@ -290,6 +290,22 @@ class BookReader {
 			try {
 				arr = JSON.parse(txt);
 				this.sessionMap[session].arr = arr;
+				
+				// 清除缓存
+				if (type == "next") {
+					let oldNext = this.sessionMap[session].next;
+					console.log(oldNext)
+					if (oldNext) {
+						oldNext.arr = null;
+					}
+				} else if (type == "prev") {
+					let oldPrev = this.sessionMap[session].prev;
+					console.log(oldPrev)
+					if (oldPrev) {
+						oldPrev.arr = null;
+					}
+				}
+				
 				return { message: "获取成功", code: 200, data: { content: arr, page: 1 } }
 			} catch (e) {
 				return { message: "获取失败", code: 403 }
@@ -362,6 +378,17 @@ class BookReader {
 		this.next = this.sessionMap[sessionName].next;
 		this.prev = this.sessionMap[sessionName].prev;
 		// TODO: 写缓存
+	}
+	
+	prevSession(page) {
+		let sessionName = this.prev.sessionName;
+		this.storage.current.session = sessionName;
+		this.storage.current.page = page;
+		
+		this.next = this.sessionMap[sessionName].next;
+		this.prev = this.sessionMap[sessionName].prev;
+		
+		console.log(this.storage.current);
 	}
 }
 

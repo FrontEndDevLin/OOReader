@@ -130,6 +130,9 @@
 							}
 						} else if (oMsg.type == "prev") {
 							let data = this.bookReader.preloadData("prev");
+							if (!data) {
+								return;
+							}
 							if (data.code == 200) {
 								data = data.data;
 								let viewArr = data.content;
@@ -139,6 +142,10 @@
 					} break;
 					case "E_NEXT_SESSION": {
 						this.bookReader.nextSession();
+					} break;
+					case "E_PREV_SESSION": {
+						let page = oMsg.page;
+						this.bookReader.prevSession(page);
 					} break;
 				}
 			}
