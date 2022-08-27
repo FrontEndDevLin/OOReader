@@ -97,6 +97,7 @@
 				this.viewArr = data.content;
 				this.page = data.page;
 			}
+			
 		},
 		created() {
 			// console.log() 
@@ -106,6 +107,11 @@
 			this.wv = currentWebview.children()[0];
 			
 			this.wv.evalJS("initView('" + JSON.stringify(this.viewArr) + "', " + this.page + ")");
+			
+			this.wv.evalJS("loadSessionInfo('" + JSON.stringify(this.bookReader.storage.current) + "')");
+			this.bookReader.onPageChange = (oSession) => {
+				this.wv.evalJS("loadSessionInfo('" + JSON.stringify(oSession) + "')");
+			}
 		},
 		methods: {
 			onMessage(e) {
@@ -127,6 +133,8 @@
 								let viewArr = data.content;
 								// let page = data.page;
 								this.wv.evalJS("preloadNext('" + JSON.stringify(viewArr) + "')");
+							} else {
+								console.log(data.code) 
 							}
 						} else if (oMsg.type == "prev") {
 							let data = this.bookReader.preloadData("prev");
@@ -137,7 +145,9 @@
 								data = data.data;
 								let viewArr = data.content;
 								this.wv.evalJS("preloadPrev('" + JSON.stringify(viewArr) + "')");
-							}
+							} else {
+								console.log(data.code)
+							} 
 						}
 					} break;
 					case "E_NEXT_SESSION": {

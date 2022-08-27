@@ -204,6 +204,8 @@ class BookReader {
 		
 		this.prev = null;
 		this.next = null;
+		
+		this.onPageChange = null;
 	}
 	
 	init(bookName) {
@@ -291,21 +293,6 @@ class BookReader {
 				arr = JSON.parse(txt);
 				this.sessionMap[session].arr = arr;
 				
-				// 清除缓存
-				if (type == "next") {
-					let oldNext = this.sessionMap[session].next;
-					console.log(oldNext)
-					if (oldNext) {
-						oldNext.arr = null;
-					}
-				} else if (type == "prev") {
-					let oldPrev = this.sessionMap[session].prev;
-					console.log(oldPrev)
-					if (oldPrev) {
-						oldPrev.arr = null;
-					}
-				}
-				
 				return { message: "获取成功", code: 200, data: { content: arr, page: 1 } }
 			} catch (e) {
 				return { message: "获取失败", code: 403 }
@@ -361,19 +348,40 @@ class BookReader {
 	nextPage() {
 		this.storage.current.page++;
 		uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
-		console.log(this.storage.current);
+		
+		if (this.onPageChange) {
+			this.onPageChange(this.storage.current)
+		}
 	}
 	
 	prevPage() {
 		this.storage.current.page--;
 		uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
-		console.log(this.storage.current);
+		
+		if (this.onPageChange) {
+			this.onPageChange(this.storage.current)
+		}
 	}
 	
 	nextSession() {
+		(() => {
+			let prevPrev = null;
+			if (!this.prev) {
+				return;
+			}
+			prevPrev = this.sessionMap[this.prev.sessionName];
+			if (prevPrev) {
+				prevPrev.arr = null;
+			}
+		})();
+		
 		let sessionName = this.next.sessionName;
 		this.storage.current.session = sessionName;
 		this.storage.current.page = 1;
+		
+		if (this.onPageChange) {
+			this.onPageChange(this.storage.current)
+		}
 		
 		this.next = this.sessionMap[sessionName].next;
 		this.prev = this.sessionMap[sessionName].prev;
@@ -381,14 +389,28 @@ class BookReader {
 	}
 	
 	prevSession(page) {
+		// 清除缓存
+		(() => {
+			let nextNext = null;
+			if (!this.next) {
+				return;
+			}
+			nextNext = this.sessionMap[this.next.sessionName];
+			if (nextNext) {
+				nextNext.arr = null;
+			}
+		})();
+		
 		let sessionName = this.prev.sessionName;
 		this.storage.current.session = sessionName;
 		this.storage.current.page = page;
 		
+		if (this.onPageChange) {
+			this.onPageChange(this.storage.current)
+		}
+		
 		this.next = this.sessionMap[sessionName].next;
 		this.prev = this.sessionMap[sessionName].prev;
-		
-		console.log(this.storage.current);
 	}
 }
 

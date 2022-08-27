@@ -82,6 +82,7 @@ function initView(viewArr, page) {
 			total: Math.round(totalW / pageW)
 		});
 		move({ animation: false });
+		loadSessionPager();
 		
 		if (pageOptions.total < 3) {
 			// 预加载
@@ -235,6 +236,7 @@ function loadNextSession() {
 				current: page,
 				total: Math.round(totalW / pageW)
 			});
+			loadSessionPager();
 			
 			if (pageOptions.total < 3) {
 				// 预加载
@@ -293,6 +295,7 @@ function loadPrevSession() {
 				current: total,
 				total: total
 			});
+			loadSessionPager();
 			
 			uni.postMessage({
 				data: {
@@ -310,6 +313,19 @@ function loadPrevSession() {
 			});
 		})
 	}, 200)
+}
+
+function loadSessionInfo(oSession) {
+	try {
+		oSession = JSON.parse(oSession);
+		$("sessionName").innerHTML = oSession.session;
+	} catch(e) {
+		//TODO handle the exception
+	}
+}
+
+function loadSessionPager() {
+	$("pager").innerHTML = pageOptions.current + "/" + pageOptions.total;
 }
 
 (() => {
@@ -332,6 +348,7 @@ function loadPrevSession() {
 				return;
 			}
 			pageOptions.current++;
+			loadSessionPager();
 			move();
 			uni.postMessage({
 				data: {
@@ -356,6 +373,7 @@ function loadPrevSession() {
 				return;
 			}
 			pageOptions.current--;
+			loadSessionPager();
 			move();
 			uni.postMessage({
 				data: {
