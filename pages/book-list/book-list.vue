@@ -39,7 +39,8 @@
 		data() {
 			return {
 				path: "",
-				bookList: []
+				bookList: [],
+				fManager: null
 			}
 		},
 		components: {
@@ -54,9 +55,11 @@
 		},
 		created() {
 			let fManager = new FileManager();
+			this.fManager = fManager;
 			fManager.init();
 			this.bookList = fManager.getBookList();
 			fManager.delBook("全职艺术家.txt");
+			console.log(60);
 		},
 		methods: {
 			search() {
@@ -74,18 +77,19 @@
 			importFile(file) {
 				this.$nextTick(() => {
 					let fileImporter = new FileImporter();
-					console.log(76)
 					this.$nextTick(() => {
 						fileImporter.importFile(file);
-					})
-					console.log(78) 
-					fileImporter.statusChange = (e) => {
+					});
+					fileImporter.statusChange = async (e) => {
 						switch (e){
 							case "importing": {
 								console.log("导入中")
 							} break;
 							case "preloaded": {
 								console.log("预载完成");
+								this.fManager.addBook(file.name.replace(".txt", ""));
+								this.bookList = this.fManager.getBookList();
+								console.log(this.bookList)
 							} break;
 						}
 					}

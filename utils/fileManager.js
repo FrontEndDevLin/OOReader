@@ -31,7 +31,7 @@ class FileImporter {
 		this.storageManager = new StorageManager();
 	}
 	
-	importFile(file) {
+	async importFile(file) {
 		this.importing = true;
 		
 		let path = file.fullPath;
@@ -75,6 +75,7 @@ class FileImporter {
 					} else {
 						// arr里为上一章内容
 					}
+					
 					if (this.storageManager.exists(sessionName, fName)) {
 						// console.log(`存在: ${sessionName}`);
 					} else {
@@ -93,7 +94,8 @@ class FileImporter {
 					console.log(`导入${cacheCnt}个文件`);
 					if (cacheCnt == 3) {
 						if (this.statusChange) {
-							this.statusChange("preloaded");
+							await this.statusChange("preloaded");
+							// break;
 						}
 					}
 					
@@ -165,7 +167,6 @@ class StorageManager {
 		}
 		try {
 			this.storage = JSON.parse(bookStorage);
-			
 			for (let item of this.storage.sessionList) {
 				this.sessionMap[item.sessionName] = item.file;
 			}
@@ -173,7 +174,6 @@ class StorageManager {
 			uni.removeStorageSync(storageKey);
 			this.init(bookName);
 		}
-		// console.log(this.storage);
 	}
 	
 	exists(sessionName, fileName) {
@@ -449,6 +449,7 @@ class FileManager {
 	}
 	
 	delBook(bookName) {
+		bookName = bookName.replace(".txt", "");
 		let txtCachePath = sdRoot + "/OOReader/" + bookName.replace(".txt", "");
 		let directory = new File(txtCachePath);
 		if (directory.exists()) {
@@ -467,7 +468,7 @@ class FileManager {
 		
 		let i;
 		for (i = 0; i < this.storage.length; i++) {
-			if (this.storage[i] == bookName) {
+			if (this.storage[i].book == bookName) {
 				break;
 			}
 		}
