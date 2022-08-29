@@ -9,10 +9,10 @@
 			</view>
 			<view class="bookshelf">
 				<view class="book-list">
-					<view class="book-item" @click="toReader">
+					<view class="book-item" v-for="oBook, index of bookList" :key="index" @click="toReader">
 						<view class="book-content">
 							<view class="book-name">
-								太平要术
+								{{ oBook.book }}
 							</view>
 						</view>
 						<view class="book-shadow"></view>
@@ -24,7 +24,6 @@
 						</view>
 					</view>
 				</view>
-				
 			</view>
 		</view>
 		
@@ -34,12 +33,13 @@
 
 <script>
 	import fileManager from "../../components/file-manager/file-manager.vue";
-	import { FileImporter } from "../../utils/fileManager.js";
+	import { FileImporter, FileManager } from "../../utils/fileManager.js";
 	
 	export default {
 		data() {
 			return {
-				path: ""
+				path: "",
+				bookList: []
 			}
 		},
 		components: {
@@ -51,6 +51,12 @@
 				this.$refs.fileManager.close();
 				return true;
 			}
+		},
+		created() {
+			let fManager = new FileManager();
+			fManager.init();
+			this.bookList = fManager.getBookList();
+			fManager.delBook("全职艺术家.txt");
 		},
 		methods: {
 			search() {
@@ -66,8 +72,24 @@
 			},
 			
 			importFile(file) {
-				let fileImporter = new FileImporter();
-				fileImporter.importFile(file);
+				this.$nextTick(() => {
+					let fileImporter = new FileImporter();
+					console.log(76)
+					this.$nextTick(() => {
+						fileImporter.importFile(file);
+					})
+					console.log(78) 
+					fileImporter.statusChange = (e) => {
+						switch (e){
+							case "importing": {
+								console.log("导入中")
+							} break;
+							case "preloaded": {
+								console.log("预载完成");
+							} break;
+						}
+					}
+				})
 			},
 			
 			toReader() {

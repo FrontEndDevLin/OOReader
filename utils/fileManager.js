@@ -32,16 +32,12 @@ class FileImporter {
 	}
 	
 	importFile(file) {
-		console.log("导入中");
-		
 		this.importing = true;
 		
 		let path = file.fullPath;
 		let name = file.name;
 		
 		this.storageManager.init(name);
-		
-		
 		
 		if (this.storageManager.storage.allImport) {
 			// 已有导入
@@ -53,6 +49,7 @@ class FileImporter {
 		
 		let txtCachePath = sdRoot + "/OOReader/" + name.replace(".txt", "");
 		let directory = new File(txtCachePath);
+		// console.log(directory.delete)
 		if (!directory.exists()) {
 			directory.mkdirs();
 		}
@@ -79,7 +76,7 @@ class FileImporter {
 						// arr里为上一章内容
 					}
 					if (this.storageManager.exists(sessionName, fName)) {
-						console.log(`存在: ${sessionName}`);
+						// console.log(`存在: ${sessionName}`);
 					} else {
 						let data = JSON.stringify(arr);
 						
@@ -94,6 +91,12 @@ class FileImporter {
 					}
 					cacheCnt++;
 					console.log(`导入${cacheCnt}个文件`);
+					if (cacheCnt == 3) {
+						if (this.statusChange) {
+							this.statusChange("preloaded");
+						}
+					}
+					
 					sessionName = txt;
 					arr = [sessionName];
 				} else {
@@ -125,7 +128,10 @@ class FileImporter {
 		}
 		
 		this.storageManager.complete();
-		console.log(`导入完成`);
+		
+		if (this.statusChange) {
+			this.statusChange("complete");
+		}
 	}
 }
 
@@ -140,6 +146,7 @@ class StorageManager {
 	}
 	
 	init(bookName) {
+		bookName = bookName.replace(".txt", "");
 		this.bookName = bookName;
 		let storageKey = "book_" + bookName;
 		this.storageKey = storageKey;
@@ -166,7 +173,7 @@ class StorageManager {
 			uni.removeStorageSync(storageKey);
 			this.init(bookName);
 		}
-		console.log(this.storage);
+		// console.log(this.storage);
 	}
 	
 	exists(sessionName, fileName) {
@@ -209,6 +216,7 @@ class BookReader {
 	}
 	
 	init(bookName) {
+		bookName = bookName.replace(".txt", "");
 		this.bookName = bookName;
 		
 		let storageKey = "book_" + bookName;
@@ -414,4 +422,70 @@ class BookReader {
 	}
 }
 
-export { FileImporter, BookReader };
+class FileManager {
+	constructor() {
+		this.storage = null;
+	}
+	
+	init() {
+		let jsonBookList = uni.getStorageSync("bookList");
+		if (jsonBookList) {
+			try {
+				this.storage = JSON.parse(jsonBookList);
+			} catch(e) {
+				this.storage = [];
+			}
+		} else {
+			this.storage = [];
+		}
+	}
+	
+	addBook(bookName) {
+		bookName = bookName.replace(".txt", "");
+		this.storage.push({
+			book: bookName
+		});
+		this.write();
+	}
+	
+	delBook(bookName) {
+		let txtCachePath = sdRoot + "/OOReader/" + bookName.replace(".txt", "");
+		let directory = new File(txtCachePath);
+		if (directory.exists()) {
+			// 删除目录下所有子文件
+			let fList = directory.listFiles();
+			for (let file of fList) {
+				file.delete();
+			}
+			directory.delete();
+		} else {
+			console.log("不存在")
+		}
+		
+		let storageKey = "book_" + bookName;
+		uni.removeStorageSync(storageKey);
+		
+		let i;
+		for (i = 0; i < this.storage.length; i++) {
+			if (this.storage[i] == bookName) {
+				break;
+			}
+		}
+		this.storage.splice(i, 1);
+		
+		this.write();
+		
+		return true;
+	}
+	
+	write() {
+		uni.setStorageSync("bookList", JSON.stringify(this.storage));
+		return true;
+	}
+	
+	getBookList() {
+		return this.storage;
+	}
+}
+
+export { FileImporter, BookReader, FileManager };

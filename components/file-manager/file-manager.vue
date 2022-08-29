@@ -71,8 +71,10 @@
 			},
 			
 			checkFile(item) {
-				this.$emit("onCheckFile", item);
 				this.close();
+				this.$nextTick(() => {
+					this.$emit("onCheckFile", item);
+				})
 			},
 			
 			loadFileManage(path) {
