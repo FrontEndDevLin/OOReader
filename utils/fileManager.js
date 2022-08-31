@@ -54,12 +54,17 @@ class FileImporter {
 			directory.mkdirs();
 		}
 		let txtFile = new File(path);
-		try {
+		// try {
 			let reader = new BufferedReader(new FileReader(txtFile));
 			let arr = [];
 			let txt;
 			let sessionName = "";
 			let cacheCnt = 0;
+			
+			if (this.statusChange) {
+				await this.statusChange("preloaded");
+				// break;
+			}
 			while ((txt = reader.readLine()) != null) {
 				if (titleReg.test(txt)) {
 					if (!arr.length) {
@@ -93,10 +98,10 @@ class FileImporter {
 					cacheCnt++;
 					console.log(`导入${cacheCnt}个文件`);
 					if (cacheCnt == 3) {
-						if (this.statusChange) {
-							await this.statusChange("preloaded");
-							// break;
-						}
+						// if (this.statusChange) {
+						// 	await this.statusChange("preloaded");
+						// 	// break;
+						// }
 					}
 					
 					sessionName = txt;
@@ -125,9 +130,9 @@ class FileImporter {
 				console.log(`导入${cacheCnt}个文件`);
 				arr = [];
 			}
-		} catch(e) {
-			console.log(e)
-		}
+		// } catch(e) {
+		// 	console.log(e)
+		// }
 		
 		this.storageManager.complete();
 		

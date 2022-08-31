@@ -86,7 +86,10 @@
 								console.log("导入中")
 							} break;
 							case "preloaded": {
-								console.log("预载完成");
+								uni.showToast({
+									icon: "none",
+									title: "预载完成"
+								});
 								this.fManager.addBook(file.name.replace(".txt", ""));
 								this.bookList = this.fManager.getBookList();
 								console.log(this.bookList)
