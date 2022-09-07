@@ -154,10 +154,9 @@
 					complete: (e) => {
 						if (e.confirm) {
 							uni.showLoading({
-								title: "删除中",
+								title: "请稍等",
 								mask: true
 							});
-							// return;
 							this.$nextTick(() => {
 								this.fManager.delBook(oBook.book);
 								this.bookList = this.fManager.getBookList();
