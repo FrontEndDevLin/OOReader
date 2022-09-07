@@ -1,34 +1,9 @@
 <template>
-	<web-view src="/hybrid/html/reader.html" ref="webView" @message="onMessage"></web-view>
-	<!-- <view class="reader" id="reader" style="display: none;">
-		<view class="inner" id="content">
-			<scroll-view 
-				class="page current" 
-				id="page" 
-				ref="page"
-				:style="{
-					paddingTop: layout.paddingTop + 'px', 
-					paddingBottom: layout.paddingBottom + 'px',
-					columns: layout.pageWidth + ' 1'
-				}"
-			>
-				<view 
-					:class="idx == 0 ? 'item title' : 'item'" 
-					v-for="txt, idx of viewArr"
-					:style="{
-						fontSize: layout.fontSize,
-						lineHeight: layout.lineHeight
-					}"
-				>
-					{{ txt }}
-				</view>
-			</scroll-view>
-		</view>
-	</view> -->
+	<web-view :src="'/hybrid/html/reader.html?theme=' + theme + '&font=' + font" ref="webView" @message="onMessage"></web-view>
 </template>
 
 <script>
-	import { BookReader } from "../../utils/fileManager";
+	import { BookReader, FileImporter } from "../../utils/fileManager";
 	
 	/**
 	 * 标题占两个行高，字号为一个行高
@@ -50,20 +25,16 @@
 				wv: null,
 				bookReader: null,
 				
-				path: "",
+				theme: uni.getStorageSync("theme") || "sun",
+				font: uni.getStorageSync("font") || 18,
 				
-				layout: {
-					pageWidth: "",
-					
-					paddingTop: 0,
-					paddingBottom: 0,
-					
-					fontSize: "18px",
-					lineHeight: "36px",
-				},
+				path: "", 
+				
+				fileImporter: null,
 				
 				viewArr: [],
 				page: 0,
+				file: "",
 				
 				pageList: [],
 				pageOptions: {
@@ -76,7 +47,12 @@
 					next: {
 						top: ""
 					}
-				}
+				},
+				
+				bookName: "",
+				path: "",
+				
+				timer: null
 			}
 		},
 		onLoad(option) {
@@ -84,20 +60,20 @@
 			// let sysInfo = uni.getSystemInfoSync();
 			// let screenHeight = sysInfo.screenHeight;
 			// console.log(screenHeight);
-			// console.log(option.path);
-			let bookName = "全职艺术家.txt";
+			this.bookName = option.book;
+			this.path = option.path;
+			
 			let bookReader = new BookReader();
 			this.bookReader = bookReader;
-			let initRes = bookReader.init(bookName);
-			
+			let initRes = bookReader.init(this.bookName);
 			let data = bookReader.initData();
 			
 			if (data.code == 200) {
 				data = data.data;
 				this.viewArr = data.content;
 				this.page = data.page;
+				this.file = data.file;
 			}
-			
 		},
 		created() {
 			// console.log() 
@@ -108,15 +84,63 @@
 			
 			this.wv.evalJS("initView('" + JSON.stringify(this.viewArr) + "', " + this.page + ")");
 			
+			let sessionList = this.bookReader.getSessionList();
+			this.wv.evalJS("loadSessionList('" + JSON.stringify(sessionList) + "')");
+			
 			this.wv.evalJS("loadSessionInfo('" + JSON.stringify(this.bookReader.storage.current) + "')");
 			this.bookReader.onPageChange = (oSession) => {
 				this.wv.evalJS("loadSessionInfo('" + JSON.stringify(oSession) + "')");
+			}
+			
+			this.timer = setTimeout(() => {
+				// 如果没全导入，继续导入
+				if (!this.bookReader.storage.allImport) {
+					this.fileImporter = new FileImporter();
+					this.$nextTick(() => {
+						this.fileImporter.importFile({
+							name: this.bookName,
+							fullPath: this.path
+						});
+					});
+					
+					this.fileImporter.statusChange = (e) => {
+						switch (e){
+							case "loadChunk": {
+								console.log("加载20个");
+								this.bookReader.updateStorage();
+								let sessionList = this.bookReader.getSessionList();
+								this.wv.evalJS("loadSessionList('" + JSON.stringify(sessionList) + "')");
+								// console.log(this.bookReader.sessionMap)
+								// this.fileImporter.importing = false;
+							} break;
+							case "complete": {
+								console.log("加载完成")
+								this.bookReader.updateStorage();
+								let sessionList = this.bookReader.getSessionList();
+								this.wv.evalJS("loadSessionList('" + JSON.stringify(sessionList) + "')");
+							} break;
+						}
+					}
+				} else {
+					console.log("已全部")
+				}
+			}, 2000)
+		},
+		beforeDestroy() {
+			// console.log(138)
+			// 如果还未导入完成，停止导入
+			clearTimeout(this.timer);
+			if (!this.bookReader.storage.allImport) {
+				this.fileImporter.importing = false;
 			}
 		},
 		methods: {
 			onMessage(e) {
 				let oMsg = e.detail.data[0];
 				switch (oMsg.action){
+					case "E_SET_THEME": {
+						uni.setStorageSync("theme", oMsg.type);
+					} break;
 					case "E_NEXT_PAGE": {
 						this.bookReader.nextPage();
 					} break;
@@ -126,8 +150,11 @@
 					case "E_PRELOAD": {
 						if (oMsg.type == "next") {
 							// 预载下一章
-							console.log("预加载");
 							let data = this.bookReader.preloadData("next");
+							if (!data) {
+								return;
+							}
+							
 							if (data.code == 200) {
 								data = data.data;
 								let viewArr = data.content;
@@ -157,6 +184,35 @@
 						let page = oMsg.page;
 						this.bookReader.prevSession(page);
 					} break;
+					case "E_READ_SESSION": {
+						let file = oMsg.file;
+						
+						this.bookReader.skipSession(file);
+						
+						let data = this.bookReader.initData();
+						
+						if (data.code == 200) {
+							data = data.data;
+							this.viewArr = data.content;
+							this.page = data.page;
+							this.wv.evalJS("initView('" + JSON.stringify(this.viewArr) + "', " + this.page + ")");
+							this.wv.evalJS("loadSessionInfo('" + JSON.stringify(this.bookReader.storage.current) + "')");
+						}
+					} break;
+					case "E_SET_FONT": {
+						let fontSize = oMsg.fontSize;
+						uni.setStorageSync("font", fontSize);
+						this.bookReader.resetSession();
+						
+						let data = this.bookReader.initData();
+						if (data.code == 200) {
+							data = data.data;
+							this.viewArr = data.content;
+							this.page = data.page;
+							this.wv.evalJS("initView('" + JSON.stringify(this.viewArr) + "', " + this.page + ")");
+							this.wv.evalJS("loadSessionInfo('" + JSON.stringify(this.bookReader.storage.current) + "')");
+						}
+					}
 				}
 			}
 		}

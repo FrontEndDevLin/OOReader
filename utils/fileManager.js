@@ -7,6 +7,10 @@ let File = plus.android.importClass("java.io.File");
 let FileReader = plus.android.importClass("java.io.FileReader");
 let FileWriter = plus.android.importClass("java.io.FileWriter");
 let BufferedReader = plus.android.importClass("java.io.BufferedReader");
+
+let InputStreamReader = plus.android.importClass("java.io.InputStreamReader");
+let FileInputStream = plus.android.importClass("java.io.FileInputStream");
+
 // #endif
 
 /**
@@ -22,6 +26,36 @@ let BufferedReader = plus.android.importClass("java.io.BufferedReader");
 
 let titleReg = /^(正文){0,1}(第)([零〇一二三四五六七八九十百千万a-zA-Z0-9]{1,7})[章节卷集部篇回]((?! {4}).)((?!\t{1,4}).){0,30}/g;
 
+async function wait(sec = 1) {
+	return new Promise((resolve, reject) => {
+		setTimeout(() => {
+			resolve();
+		}, sec)
+	})
+}
+
+function getBookCharset(path) {
+	let reader = new BufferedReader(new InputStreamReader(new FileInputStream(path)));
+	let str = "";
+	let badCode = 65533;
+	let badCnt = 0;
+	
+	for (let i = 0; i < 8; i++) {
+		str = reader.readLine();
+		for (let s of str) {
+			if (s.charCodeAt() == badCode) {
+				badCnt++;
+			}
+		}
+	}
+	
+	if (badCnt > 0) {
+		return "GBK";
+	} else {
+		return "UTF-8";
+	}
+}
+
 class FileImporter {
 	constructor() {
 		this.statusChange = null;
@@ -29,6 +63,8 @@ class FileImporter {
 		this.importing = false;
 		
 		this.storageManager = new StorageManager();
+		
+		this.afterStop = null;
 	}
 	
 	async importFile(file) {
@@ -38,7 +74,6 @@ class FileImporter {
 		let name = file.name;
 		
 		this.storageManager.init(name);
-		
 		if (this.storageManager.storage.allImport) {
 			// 已有导入
 			return;
@@ -49,23 +84,28 @@ class FileImporter {
 		
 		let txtCachePath = sdRoot + "/OOReader/" + name.replace(".txt", "");
 		let directory = new File(txtCachePath);
-		// console.log(directory.delete)
 		if (!directory.exists()) {
 			directory.mkdirs();
 		}
 		let txtFile = new File(path);
-		// try {
-			let reader = new BufferedReader(new FileReader(txtFile));
+		try {
+			// let reader = new BufferedReader(new FileReader(txtFile));
+			let charset = getBookCharset(path);
+			let reader = new BufferedReader(new InputStreamReader(new FileInputStream(path), charset));
 			let arr = [];
 			let txt;
 			let sessionName = "";
 			let cacheCnt = 0;
+			let sessionNameMap = {};
 			
-			if (this.statusChange) {
-				await this.statusChange("preloaded");
-				// break;
-			}
 			while ((txt = reader.readLine()) != null) {
+				if (!this.importing) {
+					if (this.afterStop) {
+						this.afterStop();
+					}
+					return console.log("停止导入");
+				}
+				
 				if (titleReg.test(txt)) {
 					if (!arr.length) {
 						sessionName = txt;
@@ -82,8 +122,9 @@ class FileImporter {
 					}
 					
 					if (this.storageManager.exists(sessionName, fName)) {
-						// console.log(`存在: ${sessionName}`);
+						console.log(`存在: ${sessionName}`);
 					} else {
+						await wait();
 						let data = JSON.stringify(arr);
 						
 						let f = new File(txtCachePath + "/" + fName);
@@ -96,16 +137,27 @@ class FileImporter {
 						}
 					}
 					cacheCnt++;
-					console.log(`导入${cacheCnt}个文件`);
+					// console.log(`导入${cacheCnt}个文件`);
 					if (cacheCnt == 3) {
-						// if (this.statusChange) {
-						// 	await this.statusChange("preloaded");
-						// 	// break;
-						// }
+						if (this.statusChange) {
+							this.statusChange("preloaded", { file });
+							// break;
+						}
+					}
+					
+					// 每导入20个文件触发一次
+					if (cacheCnt % 20 == 0) {
+						if (this.statusChange) {
+							this.statusChange("loadChunk");
+						}
 					}
 					
 					sessionName = txt;
+					for (; sessionNameMap[sessionName]; sessionName += " ") { }
+					
 					arr = [sessionName];
+					
+					sessionNameMap[sessionName] = 1;
 				} else {
 					arr.push(txt)
 				}
@@ -130,9 +182,9 @@ class FileImporter {
 				console.log(`导入${cacheCnt}个文件`);
 				arr = [];
 			}
-		// } catch(e) {
-		// 	console.log(e)
-		// }
+		} catch(e) {
+			console.log(e)
+		}
 		
 		this.storageManager.complete();
 		
@@ -164,6 +216,7 @@ class StorageManager {
 				allImport: false, 
 				current: {
 					session: "",
+					file: "",
 					page: 1
 				},
 				sessionList: [],
@@ -200,6 +253,7 @@ class StorageManager {
 	complete() {
 		this.storage.allImport = true;
 		uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
+		// console.log(uni.getStorageSync(this.storageKey))
 	}
 }
 
@@ -247,8 +301,9 @@ class BookReader {
 				};
 			}
 			
-			if (!this.storage.current.sessionName) {
+			if (!this.storage.current.session) {
 				this.storage.current.session = sessionList[1].sessionName;
+				this.storage.current.file = sessionList[1].file;
 				// TODO: 写缓存
 			}
 			
@@ -256,6 +311,25 @@ class BookReader {
 		} catch(e) {
 			return { message: "数据错误，请重新导入", code: 402 }
 		}
+	}
+	
+	updateStorage() {
+		let bookStorage = uni.getStorageSync(this.storageKey);
+		this.storage = JSON.parse(bookStorage);
+		let sessionList = this.storage.sessionList;
+		for (let i = 0; i < sessionList.length; i++) {
+			let item = sessionList[i];
+			this.sessionMap[item.sessionName] = {
+				prev: i > 0 ? sessionList[i - 1] : null,
+				file: item.file,
+				arr: null,
+				next: i < sessionList.length ? sessionList[i + 1] : null
+			};
+		}
+	}
+	
+	getSessionList() {
+		return this.storage.sessionList;
 	}
 	
 	// write(sessionName, fileName) {
@@ -317,6 +391,7 @@ class BookReader {
 	
 	initData() {
 		let { session, page } = this.storage.current;
+		// let file = this.sessionMap[session].file;
 		let targetFile = null;
 		let txtData = "";
 		if (!session) {
@@ -376,6 +451,50 @@ class BookReader {
 		}
 	}
 	
+	skipSession(file) {
+		let sessionName = "";
+		for (let oSession of this.storage.sessionList) {
+			if (oSession.file == file) {
+				sessionName = oSession.sessionName;
+				break;
+			}
+		}
+		if (sessionName) {
+			this.storage.current = {
+				session: sessionName,
+				file,
+				page: 1
+			};
+			uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
+		}
+	}
+	
+	resetSession() {
+		if (this.storage.current.page != 1) {
+			this.storage.current.page = 1;
+			uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
+		}
+		let session = this.storage.current.session;
+		
+		// 清除缓存
+		let prevSession = this.sessionMap[session].prev;
+		if (prevSession) {
+			let oPrevSession = this.sessionMap[prevSession.sessionName];
+			if (oPrevSession) {
+				oPrevSession.arr = null;
+			}
+		}
+		let nextSession = this.sessionMap[session].next;
+		if (nextSession) {
+			let oNextSession = this.sessionMap[nextSession.sessionName];
+			if (oNextSession) {
+				oNextSession.arr = null;
+			}
+		}
+		
+		return true;
+	}
+	
 	nextSession() {
 		(() => {
 			let prevPrev = null;
@@ -389,8 +508,10 @@ class BookReader {
 		})();
 		
 		let sessionName = this.next.sessionName;
+		let file = this.next.file;
 		this.storage.current.session = sessionName;
 		this.storage.current.page = 1;
+		this.storage.current.file = file;
 		
 		if (this.onPageChange) {
 			this.onPageChange(this.storage.current)
@@ -398,7 +519,8 @@ class BookReader {
 		
 		this.next = this.sessionMap[sessionName].next;
 		this.prev = this.sessionMap[sessionName].prev;
-		// TODO: 写缓存
+		
+		uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
 	}
 	
 	prevSession(page) {
@@ -415,8 +537,10 @@ class BookReader {
 		})();
 		
 		let sessionName = this.prev.sessionName;
+		let file = this.prev.file;
 		this.storage.current.session = sessionName;
 		this.storage.current.page = page;
+		this.storage.current.file = file;
 		
 		if (this.onPageChange) {
 			this.onPageChange(this.storage.current)
@@ -424,6 +548,8 @@ class BookReader {
 		
 		this.next = this.sessionMap[sessionName].next;
 		this.prev = this.sessionMap[sessionName].prev;
+		
+		uni.setStorageSync(this.storageKey, JSON.stringify(this.storage));
 	}
 }
 
@@ -445,10 +571,12 @@ class FileManager {
 		}
 	}
 	
-	addBook(bookName) {
+	addBook(file) {
+		let bookName = file.name;
 		bookName = bookName.replace(".txt", "");
 		this.storage.push({
-			book: bookName
+			book: bookName,
+			path: file.fullPath
 		});
 		this.write();
 	}

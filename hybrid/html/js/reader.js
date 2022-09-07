@@ -14,7 +14,10 @@ let el = {
 	nextPageEl: null
 };
 
+let fontList = [14, 16, 18, 20, 22, 24, 26, 28, 30];
+
 let layout = {
+	font: 0,
 	fontSize: "18px",
 	lineHeight: "36px",
 	paddingTop: "",
@@ -23,13 +26,28 @@ let layout = {
 
 let pageOptions = {
 	current: 0,
-	total: 0
+	total: 0,
+	file: ""
 };
 
-let preloadOptions = {
-	next: false,
-	prev: false
-};
+(function (){
+	let queryStr = location.search.replace("?", "");
+	let queryStrAry = queryStr.split("&");
+	let query = {};
+	for (let str of queryStrAry) {
+		let strAry = str.split("=");
+		query[strAry[0]] = strAry[1];
+	}
+	let theme = query.theme;
+	if (theme == "dark") {
+		$("container").className = "container dark";
+		$("moonBtn").style.display = "none";
+		$("sunBtn").style.display = "block";
+	}
+	
+	let fontSize = parseInt(query.font) || 18;
+	initFont(fontSize);
+})();
 
 (function () {
 	let contentEl = $("content");
@@ -58,14 +76,21 @@ let preloadOptions = {
 	});
 })();
 
+function initFont(fontSize) {
+	layout.font = fontSize;
+	layout.fontSize = fontSize + "px";
+	layout.lineHeight = fontSize * 2 + "px";
+	
+	loadFontSelectList();
+}
 
 function initView(viewArr, page) {
 	viewArr = JSON.parse(viewArr);
 	
 	let txtHtml = "";
 	for (let txt of viewArr) {
-		txtHtml += `<div style='font-size: ${layout.fontSize}; line-height: ${layout.lineHeight}; padding: 0 8px'>
-			${txt}
+		txtHtml += `<div class='item' style='font-size: ${layout.fontSize}; line-height: ${layout.lineHeight};'>
+			${txt.trim()}
 		</div>`
 	}
 	
@@ -81,6 +106,7 @@ function initView(viewArr, page) {
 			current: page,
 			total: Math.round(totalW / pageW)
 		});
+		// console.log(JSON.stringify(pageOptions))
 		move({ animation: false });
 		loadSessionPager();
 		
@@ -130,8 +156,8 @@ function preloadNext(viewArr) {
 	
 	let txtHtml = "";
 	for (let txt of viewArr) {
-		txtHtml += `<div style='font-size: ${layout.fontSize}; line-height: ${layout.lineHeight}; padding: 0 8px'>
-			${txt}
+		txtHtml += `<div class='item' style='font-size: ${layout.fontSize}; line-height: ${layout.lineHeight};'>
+			${txt.trim()}
 		</div>`
 	}
 	pageEl.innerHTML = txtHtml;
@@ -157,7 +183,7 @@ function preloadPrev(viewArr) {
 	
 	let txtHtml = "";
 	for (let txt of viewArr) {
-		txtHtml += `<div style='font-size: ${layout.fontSize}; line-height: ${layout.lineHeight}; padding: 0 8px'>
+		txtHtml += `<div class='item' style='font-size: ${layout.fontSize}; line-height: ${layout.lineHeight};'>
 			${txt}
 		</div>`
 	}
@@ -319,6 +345,9 @@ function loadSessionInfo(oSession) {
 	try {
 		oSession = JSON.parse(oSession);
 		$("sessionName").innerHTML = oSession.session;
+		
+		pageOptions.file = oSession.file;
+		setActiveSession();
 	} catch(e) {
 		//TODO handle the exception
 	}
@@ -328,7 +357,72 @@ function loadSessionPager() {
 	$("pager").innerHTML = pageOptions.current + "/" + pageOptions.total;
 }
 
+let sessionMap = {};
+function loadSessionList(oAySessionList) {
+	try {
+		oAySessionList = JSON.parse(oAySessionList);
+		let html = "";
+		for (let oSession of oAySessionList) {
+			if (sessionMap[oSession.file]) {
+				continue;
+			}
+			sessionMap[oSession.file] = oSession.sessionName;
+			html += "<div class='session-item " + oSession.file + "' data-file='" + oSession.file + "'>" + oSession.sessionName + "</div>";
+		}
+		// console.log(JSON.stringify(sessionMap))
+		$("sessionList").innerHTML = $("sessionList").innerHTML + html;
+	} catch(e) {
+		//TODO handle the exception
+	}
+}
+
+function setActiveSession() {
+	let oldEl = $("sessionList").getElementsByClassName("active")[0];
+	if (oldEl) {
+		oldEl.className = oldEl.className.replace(" active", "");
+	}
+	
+	let activeFile = pageOptions.file;
+	let target = $("sessionList").getElementsByClassName(activeFile)[0];
+	if (target) {
+		target.className = target.className + " active";
+	}
+}
+
+function loadFontSelectList() {
+	let html = "";
+	for (let font of fontList) {
+		let className = "select-item";
+		if (font == layout.font) {
+			className = "select-item selected";
+		}
+		html += `<div class="${className}" data-font="${font}">
+			${font}
+			<span class="iconfont icon-check"></span>
+		</div>`;
+	}
+	
+	$("fontOptions").innerHTML = html;
+}
+
+function updateFontSelectList() {
+	let selectElList = $("fontOptions").getElementsByClassName("select-item");
+	for (let el of selectElList) {
+		if (el.className.indexOf("selected") != -1) {
+			el.className = "select-item";
+		}
+		if (parseInt(el.getAttribute("data-font")) == layout.font) {
+			el.className = "select-item selected";
+		}
+	}
+}
+
 (() => {
+	// document.addEventListener("click", (e) => {
+	// 	console.log(e.target.className)
+	// 	console.log(e.target.id)
+	// })
+	
 	let startX = null;
 	let endX = null;
 	
@@ -385,4 +479,114 @@ function loadSessionPager() {
 			console.log("不动");
 		}
 	})
+})();
+
+
+
+(() => {
+	$("centerBtn").onclick = function () {
+		$("menuContent").className = "menu-content show";
+		setTimeout(() => {
+			$("menuWarpper").className = "menu-warpper show";
+		}, 10);
+	}
+	
+	$("menuMask").onclick = function () {
+		$("menuWarpper").className = "menu-warpper";
+		setTimeout(() => {
+			$("menuContent").className = "menu-content";
+		}, 200);
+	}
+	
+	$("moonBtn").onclick = function () {
+		$("container").className = "container dark";
+		$("moonBtn").style.display = "none";
+		$("sunBtn").style.display = "block";
+		
+		uni.postMessage({
+			data: {
+				action: "E_SET_THEME",
+				type: "dark"
+			}
+		});
+	}
+	
+	$("sunBtn").onclick = function () {
+		$("container").className = "container";
+		$("sunBtn").style.display = "none";
+		$("moonBtn").style.display = "block";
+		
+		uni.postMessage({
+			data: {
+				action: "E_SET_THEME",
+				type: "sun"
+			}
+		});
+	}
+	
+	$("menuBtn").onclick = function () {
+		$("menuWarpper").className = "menu-warpper";
+		setTimeout(() => {
+			$("menuContent").className = "menu-content";
+		}, 200);
+		
+		$("sessionContent").className = "session-list-content show";
+		setTimeout(() => {
+			$("sessionWarpper").className = "session-warpper show";
+		}, 10);
+	}
+	
+	$("contentMask").onclick = function () {
+		$("sessionWarpper").className = "session-warpper";
+		setTimeout(() => {
+			$("sessionContent").className = "session-list-content";
+		}, 200);
+	}
+	
+	$("sessionList").onclick = function (e) {
+		let target = e.target;
+		if (target.className.indexOf("session-item") != -1 && target.className.indexOf("active") == -1) {
+			let targetFile = target.getAttribute("data-file");
+			if (targetFile) {
+				uni.postMessage({
+					data: {
+						action: "E_READ_SESSION",
+						file: targetFile
+					}
+				});
+			}
+		}
+	}
+	
+	$("setFont").onclick = function () {
+		$("menuMask").onclick();
+		setTimeout(() => {
+			$("fontSelector").className = "font-selector-popup show";
+		}, 200)
+	}
+	
+	$("fontOptions").onclick = function (e) {
+		let target = e.target;
+		if (target.className.indexOf("select-item") != -1 && target.className.indexOf("selected") == -1) {
+			let fontSize = parseInt(target.getAttribute("data-font"));
+			if (!fontSize) return;
+			
+			uni.postMessage({
+				data: {
+					action: "E_SET_FONT",
+					fontSize: fontSize
+				}
+			});
+			layout.font = fontSize;
+			layout.fontSize = fontSize + "px";
+			layout.lineHeight = fontSize * 2 + "px";
+			updateFontSelectList();
+		}
+	}
+	
+	$("popupMask").onclick = function () {
+		$("fontSelector").className = "font-selector-popup";
+	}
+	
+	
 })();

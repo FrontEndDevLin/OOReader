@@ -7,9 +7,10 @@
 	<title>Document</title>
 	<link rel="stylesheet" href="./css/commen.css">
 	<link rel="stylesheet" href="./css/reader.css">
+	<link rel="stylesheet" href="./font/iconfont.css">
 </head>
 <body>
-	<div class="container">
+	<div class="container" id="container">
 		<div class="reader" id="reader">
 			<div class="content" id="content">
 				<div class="page" id="page">
@@ -21,6 +22,57 @@
 		<div class="footer">
 			<div class="session" id="sessionName"></div>
 			<div class="pager" id="pager">1/8</div>
+		</div>
+		<!-- 中间隐藏按钮 -->
+		<div class="center-hide-btn" id="centerBtn"></div>
+		<!-- 底部菜单栏 -->
+		<div class="menu-content" id="menuContent">
+			<div class="menu-mask" id="menuMask"></div>
+			<div class="menu-warpper" id="menuWarpper">
+				<div class="menu-list">
+					<div class="menu-item" id="menuBtn">
+						<div class="iconfont icon-menu"></div>
+						<div class="title">目录</div>
+					</div>
+					<div class="menu-item" id="setFont">
+						<div class="iconfont icon-font-size"></div>
+						<div class="title">字号</div>
+					</div>
+					<div class="menu-item" id="moonBtn">
+						<div class="iconfont icon-moon"></div>
+						<div class="title">夜间</div>
+					</div>
+					<div class="menu-item" id="sunBtn" style="display: none;">
+						<div class="iconfont icon-sun"></div>
+						<div class="title">日间</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- 章节列表 -->
+		<div class="session-list-content" id="sessionContent">
+			<div class="content-mask" id="contentMask"></div>
+			<div class="session-warpper" id="sessionWarpper">
+				<div class="session-list" id="sessionList">
+					<!-- <div class="session-item">第一章</div>
+					<div class="session-item">第一章</div>
+					<div class="session-item">第一章</div>
+					<div class="session-item">第一章</div> -->
+				</div>
+			</div>
+		</div>
+		<!-- 字号选择框 -->
+		<div class="font-selector-popup" id="fontSelector">
+			<div class="popup-mask" id="popupMask"></div>
+			<div class="selector-warpper">
+				<div class="selector-title">字号设置</div>
+				<div class="options" id="fontOptions">
+					<!-- <div class="select-item">
+						14
+						<span class="iconfont icon-check"></span>
+					</div> -->
+				</div>
+			</div>
 		</div>
 	</div>
 	<script type="text/javascript" src="./js/uni.webview.1.5.4.js"></script>
