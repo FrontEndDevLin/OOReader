@@ -1,5 +1,14 @@
 <script>
 	export default {
+		globalData: {
+			uid: "",
+			alipayCode: "",
+			wechatCode: "",
+			
+			privacyVer: "",
+			privacyUrl: ""
+		},
+		
 		onLaunch: function() {
 			console.warn('当前组件仅支持 uni_modules 目录结构 ，请升级 HBuilderX 到 3.1.0 版本以上！')
 			console.log('App Launch')
@@ -18,6 +27,7 @@
 	@import '@/uni_modules/uni-scss/index.scss';
 	@import "@/static/icon/iconfont.css";
 	@import "@/static/icon/folder/iconfont.css";
+	@import "@/static/icon/setting/iconfont.css";
 	
 	/* #ifndef APP-NVUE */
 	@import '@/static/customicons.css';

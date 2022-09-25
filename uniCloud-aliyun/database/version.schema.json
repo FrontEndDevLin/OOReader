@@ -1,0 +1,33 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": true,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"ver": {
+			"description": "版本号"
+		},
+		"link": {
+			"description": "下载地址"
+		},
+		"force": {
+			"description": "是否必须更新"
+		},
+		"active": {
+			"description": "是否是当前版本"
+		},
+		"upd_log": {
+			"description": "更新日志"
+		},
+		"upd_date": {
+			"description": "更新日期"
+		}
+	}
+}

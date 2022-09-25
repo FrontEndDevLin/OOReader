@@ -1,0 +1,24 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"version": {
+			"description": "版本"
+		},
+		"url": {
+			"description": "地址"
+		},
+		"active": {
+			"description": "是否为当前版本"
+		}
+	}
+}

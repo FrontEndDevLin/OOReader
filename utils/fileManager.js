@@ -24,7 +24,7 @@ let FileInputStream = plus.android.importClass("java.io.FileInputStream");
  * 启动应用时，检查有没有全部导入，如果没有
  */
 
-let titleReg = /^(正文){0,1}(第)([零〇一二三四五六七八九十百千万a-zA-Z0-9]{1,7})[章节卷集部篇回]((?! {4}).)((?!\t{1,4}).){0,30}/g;
+let titleReg = /^(\s|\t)*(正文){0,1}(\s|\t)*(第)([零〇一二三四五六七八九十百千万a-zA-Z0-9]{1,7})[章节卷集部篇回]((?! {4}).)((?!\t{1,4}).){0,30}/;
 
 async function wait(sec = 1) {
 	return new Promise((resolve, reject) => {
@@ -42,6 +42,7 @@ function getBookCharset(path) {
 	
 	for (let i = 0; i < 8; i++) {
 		str = reader.readLine();
+		if (!str) break;
 		for (let s of str) {
 			if (s.charCodeAt() == badCode) {
 				badCnt++;
@@ -76,6 +77,7 @@ class FileImporter {
 		this.storageManager.init(name);
 		if (this.storageManager.storage.allImport) {
 			// 已有导入
+			this.importing = false;
 			return;
 		}
 		if (this.statusChange) {
@@ -133,8 +135,8 @@ class FileImporter {
 							let fReader = new FileWriter(txtCachePath + "/" + fName, true);
 							fReader.write(data);
 							fReader.close();
-							this.storageManager.write(sessionName, fName);
 						}
+						this.storageManager.write(sessionName, fName);
 					}
 					cacheCnt++;
 					// console.log(`导入${cacheCnt}个文件`);
@@ -165,6 +167,11 @@ class FileImporter {
 			// 最后一个文件
 			if (arr.length) {
 				let fName = "session_" + cacheCnt;
+				if (!sessionName) {
+					sessionName = arr[0];
+				}
+				console.log(sessionName)
+				console.log(fName)
 				if (this.storageManager.exists(sessionName, fName)) {
 					
 				} else {
@@ -175,8 +182,9 @@ class FileImporter {
 						let fReader = new FileWriter(txtCachePath + "/" + fName, true);
 						fReader.write(data);
 						fReader.close();
-						this.storageManager.write(sessionName, fName);
 					}
+					
+					this.storageManager.write(sessionName, fName);
 				}
 				
 				console.log(`导入${cacheCnt}个文件`);
@@ -189,7 +197,7 @@ class FileImporter {
 		this.storageManager.complete();
 		
 		if (this.statusChange) {
-			this.statusChange("complete");
+			this.statusChange("complete", { file });
 		}
 	}
 }
@@ -302,11 +310,10 @@ class BookReader {
 			}
 			
 			if (!this.storage.current.session) {
-				this.storage.current.session = sessionList[1].sessionName;
-				this.storage.current.file = sessionList[1].file;
+				this.storage.current.session = sessionList[0].sessionName;
+				this.storage.current.file = sessionList[0].file;
 				// TODO: 写缓存
 			}
-			
 			return { message: "初始化成功", code: 200 }
 		} catch(e) {
 			return { message: "数据错误，请重新导入", code: 402 }
@@ -579,6 +586,19 @@ class FileManager {
 			path: file.fullPath
 		});
 		this.write();
+	}
+	
+	exists(file) {
+		let bookName = file.name;
+		bookName = bookName.replace(".txt", "");
+		let isExists = false;
+		for (let oBook of this.storage) {
+			if (oBook.book == bookName) {
+				isExists = true;
+				break;
+			}
+		}
+		return isExists;
 	}
 	
 	delBook(bookName) {

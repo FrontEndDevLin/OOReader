@@ -1,0 +1,30 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"avatar": {
+			"description": "开发者头像"
+		},
+		"message": {
+			"description": "留言"
+		},
+		"author": {
+			"description": "作者"
+		},
+		"email": {
+			"description": "邮箱"
+		},
+		"qrcode": {
+			"description": "二维码"
+		}
+	}
+}

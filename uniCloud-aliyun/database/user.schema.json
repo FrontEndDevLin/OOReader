@@ -1,0 +1,27 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"mac": {
+			"description": "mac地址"
+		},
+		"tel": {
+			"description": "手机号"
+		},
+		"uid": {
+			"description": "用户id"
+		},
+		"lastLoginTime": {
+			"description": "上次登录时间"
+		}
+	}
+}

@@ -20,10 +20,110 @@
 				"enablePullDownRefresh": false
 			}
 		}
-  ],
+      ,{
+            "path" : "pages/setting/setting",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "设置",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/setting-font/setting-font",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "阅读器字号设置",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/setting-theme/setting-theme",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "阅读器主题设置",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/about/about",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "关于欧欧阅读",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/dev-info/dev-info",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "开发者信息",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/donate/donate",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "捐赠作者",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/update-log/update-log",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "更新日志",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/update-log-detail/update-log-detail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "版本更新信息",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/feedback/feedback",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "问题反馈",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/privacy-policy/privacy-policy",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "隐私政策",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+				,{
+				    "path" : "pages/privacy-confirm/privacy-confirm",
+				    "style" :                                                                                    
+				    {
+							"navigationStyle": "custom",
+							"navigationBarTitleText": "",
+				        "enablePullDownRefresh": false
+				    }
+				    
+				}
+    ],
 	"tabBar": {
 		"color": "#7A7E83",
-		"selectedColor": "#3cc51f",
+		"selectedColor": "#465D93",
 		"borderStyle": "black",
 		"backgroundColor": "#ffffff",
 		"height": "50px",
@@ -38,7 +138,7 @@
 				"iconfont": {
 					"color": "#7A7E83",
 					"fontSize": "18px",
-					"selectedColor": "#3cc51f",
+					"selectedColor": "#465D93",
 					"text": "\ue602"
 				}
 			},
@@ -48,7 +148,7 @@
 				"iconfont": {
 					"color": "#7A7E83",
 					"fontSize": "18px",
-					"selectedColor": "#3cc51f",
+					"selectedColor": "#465D93",
 					"text": "\ue632"
 				}
 			}

@@ -1,0 +1,30 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"uid": {
+			"description": "用户id"
+		},
+		"fn": {
+			"description": "反馈功能"
+		},
+		"txt": {
+			"description": "问题或建议"
+		},
+		"submit_date": {
+			"description": "提交日期"
+		},
+		"version": {
+			"description": "所在版本"
+		}
+	}
+}
