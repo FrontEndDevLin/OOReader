@@ -124,6 +124,7 @@ class FileImporter {
 					}
 					
 					if (this.storageManager.exists(sessionName, fName)) {
+						await wait();
 						console.log(`存在: ${sessionName}`);
 					} else {
 						await wait();

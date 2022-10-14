@@ -65,10 +65,6 @@
 	import { FileImporter, FileManager } from "../../utils/fileManager.js";
 	import { getDeviceMac } from "../../utils/utils.js";
 	
-	/**
-	 * 阅读器bug
-	 */
-	
 	export default {
 		data() {
 			return {
@@ -92,7 +88,6 @@
 			fileManager
 		},
 		onBackPress(e) {
-			// console.log(e)
 			if (this.$refs.fileManager.show) {
 				this.$refs.fileManager.close();
 				return true;
@@ -106,14 +101,6 @@
 			try {
 				let privacyInfo = await cloudUser.privacyInfo();
 				if (privacyInfo) {
-					/**
-					 *{
-							"_id": "632d8fd2d2b9120001e73ee3",
-							"version": "V1.0.0",
-							"active": true,
-							"url": "https://static-38944d35-dfae-4590-bae3-254cb1358ba9.bspapp.com/privacy-policy/1.0.0.html"
-						}
-					 */
 					getApp().globalData.privacyUrl = privacyInfo.url;
 					getApp().globalData.privacyVer = privacyInfo.version;
 				}

@@ -35,14 +35,22 @@
                 },
                 "permissionExternalStorage" : {
                     "request" : "none"
-                }
+                },
+                "minSdkVersion" : 23
             },
             "ios" : {
                 "dSYMs" : false
             },
             /* ios打包配置 */
             "sdkConfigs" : {
-                "ad" : {}
+                "ad" : {
+                    "gdt" : {},
+                    "csj" : {},
+                    "360" : {},
+                    "ks" : {},
+                    "sigmob" : {},
+                    "hw" : {}
+                }
             },
             "icons" : {
                 "android" : {
@@ -79,6 +87,9 @@
         },
         "permissionPhoneState" : {
             "request" : "none"
+        },
+        "uniStatistics" : {
+            "enable" : true
         }
     },
     /* SDK配置 */
@@ -90,9 +101,66 @@
         "setting" : {
             "urlCheck" : false
         },
-        "usingComponents" : true
+        "usingComponents" : true,
+        "uniStatistics" : {
+            "enable" : true
+        }
     },
-    "vueVersion" : "2"
+    "vueVersion" : "2",
+    "uniStatistics" : {
+        "version" : "2",
+        "enable" : true
+    },
+    "h5" : {
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "mp-alipay" : {
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "mp-baidu" : {
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "mp-jd" : {
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "mp-kuaishou" : {
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "mp-lark" : {
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "mp-qq" : {
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "mp-toutiao" : {
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "quickapp-webview-huawei" : {
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "quickapp-webview-union" : {
+        "uniStatistics" : {
+            "enable" : true
+        }
+    }
 }
 /* ios打包配置 */
 
